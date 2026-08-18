@@ -9,6 +9,8 @@
     const next = current === 'dark' ? 'light' : 'dark';
 
     root.dataset.theme = next;
-    localStorage.setItem('theme', next);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {}
   });
 </script>
