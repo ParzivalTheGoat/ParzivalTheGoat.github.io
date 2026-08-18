@@ -33,8 +33,8 @@ test('search exposes busy state and restores controls after completion', async (
   const button = page.getByRole('button', { name: '搜索' });
   await expect(form).toHaveAttribute('aria-busy', 'true');
   await expect(page.getByText('正在搜索')).toBeVisible();
-  await expect(input).toBeDisabled();
-  await expect(button).toBeDisabled();
+  await expect(input).toBeEnabled();
+  await expect(button).toBeEnabled();
 
   await page.evaluate(() => (window as unknown as { resolvePagefindSearch(): void }).resolvePagefindSearch());
   await expect(page.getByText('没有找到匹配内容')).toBeVisible();
@@ -151,4 +151,68 @@ test('keyboard focus keeps the search input visibly outlined', async ({ page }) 
   });
   expect(outline.style).not.toBe('none');
   expect(outline.width).toBeGreaterThanOrEqual(2);
+});
+
+test('Enter keeps search input focus through delayed Pagefind success and failure', async ({ page }) => {
+  await stubPagefind(page, `
+    const pending = [];
+    window.pagefindQueries = [];
+    export function search(query) {
+      window.pagefindQueries.push(query);
+      return new Promise((resolve, reject) => { pending.push({ query, resolve, reject }); });
+    }
+    window.settlePagefindSearch = (query, failure) => {
+      const request = pending.find((item) => item.query === query);
+      if (failure) request.reject(new Error('failure'));
+      else request.resolve({ results: [] });
+    };
+  `);
+  await page.goto('/search/');
+  for (let index = 0; index < 9; index += 1) await page.keyboard.press('Tab');
+
+  const input = page.getByRole('searchbox', { name: '搜索文章' });
+  await expect(input).toBeFocused();
+  await page.keyboard.type('success');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('search')).toHaveAttribute('aria-busy', 'true');
+  await expect(input).toBeFocused();
+  await page.waitForFunction(() => typeof (window as unknown as { settlePagefindSearch?: unknown }).settlePagefindSearch === 'function');
+  await page.waitForFunction(() => (window as unknown as { pagefindQueries?: string[] }).pagefindQueries?.includes('success'));
+  await page.evaluate(() => (window as unknown as { settlePagefindSearch(query: string, failure: boolean): void }).settlePagefindSearch('success', false));
+  await expect(page.getByText('没有找到匹配内容')).toBeVisible();
+  await expect(input).toBeFocused();
+
+  await input.fill('failure');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('search')).toHaveAttribute('aria-busy', 'true');
+  await expect(input).toBeFocused();
+  await page.waitForFunction(() => (window as unknown as { pagefindQueries?: string[] }).pagefindQueries?.includes('failure'));
+  await page.evaluate(() => (window as unknown as { settlePagefindSearch(query: string, failure: boolean): void }).settlePagefindSearch('failure', true));
+  await expect(page.getByText(unavailableStatus)).toBeVisible();
+  await expect(input).toBeFocused();
+});
+
+test('search settlement preserves an intentional keyboard focus move', async ({ page }) => {
+  await stubPagefind(page, `
+    let resolveSearch;
+    export function search() {
+      return new Promise((resolve) => { resolveSearch = resolve; });
+    }
+    window.resolvePagefindSearch = () => resolveSearch({ results: [] });
+  `);
+  await page.goto('/search/');
+  for (let index = 0; index < 9; index += 1) await page.keyboard.press('Tab');
+
+  const input = page.getByRole('searchbox', { name: '搜索文章' });
+  const button = page.getByRole('button', { name: '搜索' });
+  await expect(input).toBeFocused();
+  await page.keyboard.type('move');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('search')).toHaveAttribute('aria-busy', 'true');
+  await page.keyboard.press('Tab');
+  await expect(button).toBeFocused();
+  await page.waitForFunction(() => typeof (window as unknown as { resolvePagefindSearch?: unknown }).resolvePagefindSearch === 'function');
+  await page.evaluate(() => (window as unknown as { resolvePagefindSearch(): void }).resolvePagefindSearch());
+  await expect(page.getByText('没有找到匹配内容')).toBeVisible();
+  await expect(button).toBeFocused();
 });

@@ -23,8 +23,6 @@
     list.replaceChildren();
     status.textContent = '正在搜索';
     form.setAttribute('aria-busy', 'true');
-    input.disabled = true;
-    button.disabled = true;
 
     try {
       const pagefindPath = '/pagefind/' + 'pagefind.js';
@@ -53,8 +51,6 @@
     } finally {
       if (request !== generation) return;
       form.setAttribute('aria-busy', 'false');
-      input.disabled = false;
-      button.disabled = false;
     }
   });
 </script>
