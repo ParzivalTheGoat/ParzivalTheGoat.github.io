@@ -9,10 +9,13 @@ interface Props {
 const { post, includeTags = true } = Astro.props;
 const publishedAt = post.data.publishedAt.toISOString();
 const publishedLabel = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.publishedAt);
+const updatedAt = post.data.updatedAt?.toISOString();
+const updatedLabel = post.data.updatedAt && new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.updatedAt);
 ---
 
 <div class="post-meta mono muted">
   <time datetime={publishedAt}>{publishedLabel}</time>
+  {updatedAt && updatedLabel && <time datetime={updatedAt}>更新于 {updatedLabel}</time>}
   <span aria-hidden="true">·</span>
   <a href={`/categories/${post.data.category}/`}>{post.data.category}</a>
   {includeTags && post.data.tags.map((tag) => (

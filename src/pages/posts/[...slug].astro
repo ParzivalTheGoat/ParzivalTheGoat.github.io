@@ -2,13 +2,19 @@
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { buildPostPaths } from '../../lib/post-paths';
-import { getPublishedPosts } from '../../lib/posts';
+import { getPublishedPosts, type BlogPost } from '../../lib/posts';
+
+interface Props {
+  post: BlogPost;
+  newer: BlogPost | null;
+  older: BlogPost | null;
+}
 
 export async function getStaticPaths() {
   return buildPostPaths(await getPublishedPosts());
 }
 
-const { post, newer, older } = Astro.props;
+const { post, newer, older }: Props = Astro.props;
 const { Content, headings } = await render(post);
 ---
 

@@ -42,6 +42,8 @@ const { post, headings, newer, older } = Astro.props;
 </BaseLayout>
 
 <script>
+  import { createCopyFeedback } from '../lib/copy-feedback';
+
   const progress = document.querySelector<HTMLElement>('[data-reading-progress]');
 
   function updateProgress() {
@@ -61,13 +63,8 @@ const { post, headings, newer, older } = Astro.props;
       button.className = 'copy-code';
       button.type = 'button';
       button.textContent = '复制';
-      button.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(source);
-        button.textContent = '已复制';
-        window.setTimeout(() => {
-          button.textContent = '复制';
-        }, 2000);
-      });
+      const copy = createCopyFeedback(button, navigator.clipboard);
+      button.addEventListener('click', () => { void copy(source); });
       pre.append(button);
     });
   }
