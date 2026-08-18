@@ -1,0 +1,24 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const props: Props = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head><BaseHead {...props} /></head>
+  <body>
+    <SiteHeader />
+    <main class="shell" data-pagefind-body><slot /></main>
+    <SiteFooter />
+  </body>
+</html>

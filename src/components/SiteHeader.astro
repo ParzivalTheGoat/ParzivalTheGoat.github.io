@@ -1,0 +1,25 @@
+---
+import { SITE } from '../config/site';
+import ThemeToggle from './ThemeToggle.astro';
+
+const links = [
+  { href: '/posts/', label: '文章' },
+  { href: '/categories/', label: '分类' },
+  { href: '/tags/', label: '标签' },
+  { href: '/archive/', label: '归档' },
+  { href: '/search/', label: '搜索' },
+  { href: '/about/', label: '关于' },
+];
+---
+
+<header class="site-header">
+  <div class="shell header-inner">
+    <a class="site-name" href="/">{SITE.title}</a>
+    <nav aria-label="主导航">
+      <ul>
+        {links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+      </ul>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
