@@ -1,0 +1,19 @@
+---
+import PostList from '../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts, groupPostsByMonth } from '../../lib/posts';
+
+const groups = groupPostsByMonth(await getPublishedPosts());
+---
+
+<BaseLayout title="归档">
+  <h1>归档</h1>
+  {groups.length === 0 ? (
+    <PostList posts={[]} />
+  ) : groups.map((group) => (
+    <section class="archive-group" aria-labelledby={`archive-${group.key}`}>
+      <h2 id={`archive-${group.key}`}>{group.key}</h2>
+      <PostList posts={group.items} />
+    </section>
+  ))}
+</BaseLayout>

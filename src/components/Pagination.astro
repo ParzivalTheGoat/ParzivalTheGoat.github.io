@@ -1,0 +1,18 @@
+---
+interface Props {
+  currentPage: number;
+  totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+const previousPage = currentPage - 1;
+const nextPage = currentPage + 1;
+const postPageHref = (page: number) => page === 1 ? '/posts/' : `/posts/page/${page}/`;
+---
+
+{totalPages > 1 && (
+  <nav class="pagination mono" aria-label="分页">
+    {currentPage > 1 ? <a href={postPageHref(previousPage)}>上一页</a> : <span />}
+    {currentPage < totalPages && <a href={postPageHref(nextPage)}>下一页</a>}
+  </nav>
+)}

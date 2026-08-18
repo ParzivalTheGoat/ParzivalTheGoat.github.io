@@ -1,0 +1,18 @@
+---
+import PostList from '../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts, getTaxonomyCounts } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return getTaxonomyCounts(posts).tags.map(({ name }) => ({ params: { tag: name } }));
+}
+
+const tag = Astro.params.tag ?? '';
+const posts = (await getPublishedPosts()).filter((post) => post.data.tags.includes(tag));
+---
+
+<BaseLayout title={tag}>
+  <h1>{tag}</h1>
+  <PostList posts={posts} />
+</BaseLayout>

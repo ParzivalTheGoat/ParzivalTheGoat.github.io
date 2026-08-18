@@ -1,5 +1,15 @@
 ---
+import PostList from '../components/PostList.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPublishedPosts } from '../lib/posts';
+
+const posts = await getPublishedPosts();
 ---
 
-<BaseLayout><h1>Parzival's Lab</h1></BaseLayout>
+<BaseLayout>
+  <h1>Parzival's Lab</h1>
+  <section aria-labelledby="latest">
+    <h2 id="latest">最新文章</h2>
+    <PostList posts={posts.slice(0, 10)} />
+  </section>
+</BaseLayout>

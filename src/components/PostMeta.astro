@@ -1,0 +1,26 @@
+---
+import { getReadingMinutes, type BlogPost } from '../lib/posts';
+
+interface Props {
+  post: BlogPost;
+  includeTags?: boolean;
+}
+
+const { post, includeTags = true } = Astro.props;
+const publishedAt = post.data.publishedAt.toISOString();
+const publishedLabel = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.publishedAt);
+---
+
+<div class="post-meta mono muted">
+  <time datetime={publishedAt}>{publishedLabel}</time>
+  <span aria-hidden="true">·</span>
+  <a href={`/categories/${post.data.category}/`}>{post.data.category}</a>
+  {includeTags && post.data.tags.map((tag) => (
+    <>
+      <span aria-hidden="true">·</span>
+      <a href={`/tags/${tag}/`}>#{tag}</a>
+    </>
+  ))}
+  <span aria-hidden="true">·</span>
+  <span>{getReadingMinutes(post.body ?? '')} 分钟</span>
+</div>

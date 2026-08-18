@@ -1,0 +1,20 @@
+---
+import { CATEGORIES } from '../../content/schema';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts, getTaxonomyCounts } from '../../lib/posts';
+
+const posts = await getPublishedPosts();
+const counts = new Map(getTaxonomyCounts(posts).categories.map(({ name, count }) => [name, count]));
+---
+
+<BaseLayout title="分类">
+  <h1>分类</h1>
+  <ul class="taxonomy-list">
+    {CATEGORIES.map((category) => (
+      <li data-category-row>
+        <a href={`/categories/${category}/`}>{category}</a>
+        <span class="mono muted">({counts.get(category) ?? 0})</span>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

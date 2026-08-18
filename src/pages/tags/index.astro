@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts, getTaxonomyCounts } from '../../lib/posts';
+
+const tags = getTaxonomyCounts(await getPublishedPosts()).tags;
+---
+
+<BaseLayout title="标签">
+  <h1>标签</h1>
+  {tags.length === 0 ? (
+    <p class="empty-state">暂无文章</p>
+  ) : (
+    <ul class="taxonomy-list">
+      {tags.map(({ name, count }) => (
+        <li data-tag-row>
+          <a href={`/tags/${name}/`}>{name}</a>
+          <span class="mono muted">({count})</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

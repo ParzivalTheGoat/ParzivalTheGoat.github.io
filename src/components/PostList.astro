@@ -1,0 +1,24 @@
+---
+import type { BlogPost } from '../lib/posts';
+import PostMeta from './PostMeta.astro';
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props;
+---
+
+{posts.length === 0 ? (
+  <p class="empty-state">暂无文章</p>
+) : (
+  <ol class="post-list">
+    {posts.map((post) => (
+      <li class="post-row" data-post-row>
+        <a href={`/posts/${post.id}/`}>{post.data.title}</a>
+        <p>{post.data.description}</p>
+        <PostMeta post={post} includeTags={false} />
+      </li>
+    ))}
+  </ol>
+)}
