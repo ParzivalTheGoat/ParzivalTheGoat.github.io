@@ -49,4 +49,4 @@ main h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 500; line-height:
 .footer-inner { color: var(--muted); font-size: 0.75rem; flex-wrap: wrap; }
 .footer-inner span { margin-right: auto; }
 @media (max-width: 40rem) { nav { flex-basis: 100%; order: 3; } .post-row { grid-template-columns: 1fr; } .post-meta { grid-column: auto; grid-row: auto; max-width: none; } .footer-inner span { margin-right: 0; width: 100%; } .search-form { grid-template-columns: 1fr; } .search-form button { justify-self: start; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0s !important; } }

@@ -1,14 +1,24 @@
-<button class="theme-toggle mono" type="button" aria-label="切换深浅主题">主题</button>
+<button class="theme-toggle mono" type="button" aria-label="切换深浅主题" aria-pressed="false">主题</button>
 
 <script>
   const button = document.querySelector<HTMLButtonElement>('.theme-toggle');
+  const root = document.documentElement;
+  const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+
+  const activeTheme = () => root.dataset.theme ?? (systemTheme.matches ? 'dark' : 'light');
+  const syncPressedState = () => button?.setAttribute('aria-pressed', String(activeTheme() === 'dark'));
+
+  syncPressedState();
+  systemTheme.addEventListener('change', () => {
+    if (!root.dataset.theme) syncPressedState();
+  });
 
   button?.addEventListener('click', () => {
-    const root = document.documentElement;
-    const current = root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const current = activeTheme();
     const next = current === 'dark' ? 'light' : 'dark';
 
     root.dataset.theme = next;
+    syncPressedState();
     try {
       localStorage.setItem('theme', next);
     } catch {}
