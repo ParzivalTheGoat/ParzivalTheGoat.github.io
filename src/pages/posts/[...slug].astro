@@ -1,0 +1,15 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { buildPostPaths } from '../../lib/post-paths';
+import { getPublishedPosts } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  return buildPostPaths(await getPublishedPosts());
+}
+
+const { post, newer, older } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<PostLayout post={post} headings={headings} newer={newer} older={older}><Content /></PostLayout>

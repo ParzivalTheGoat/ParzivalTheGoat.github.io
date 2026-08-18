@@ -1,0 +1,74 @@
+---
+import PostMeta from '../components/PostMeta.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import type { BlogPost } from '../lib/posts';
+import '../styles/prose.css';
+import BaseLayout from './BaseLayout.astro';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  post: BlogPost;
+  headings: Heading[];
+  newer: BlogPost | null;
+  older: BlogPost | null;
+}
+
+const { post, headings, newer, older } = Astro.props;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+  <header class="post-header">
+    <PostMeta post={post} />
+    <h1>{post.data.title}</h1>
+  </header>
+  <div class="post-content-layout">
+    <TableOfContents headings={headings} />
+    <article class="prose" data-pagefind-body>
+      <slot />
+    </article>
+  </div>
+  {(newer || older) && (
+    <nav class="post-navigation" aria-label="文章导航">
+      {newer && <a href={`/posts/${newer.id}/`}>较新文章：{newer.data.title}</a>}
+      {older && <a href={`/posts/${older.id}/`}>较早文章：{older.data.title}</a>}
+    </nav>
+  )}
+</BaseLayout>
+
+<script>
+  const progress = document.querySelector<HTMLElement>('[data-reading-progress]');
+
+  function updateProgress() {
+    if (!progress) return;
+    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const percentage = scrollableHeight > 0 ? (window.scrollY / scrollableHeight) * 100 : 0;
+    progress.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+  }
+
+  updateProgress();
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  if (navigator.clipboard) {
+    document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
+      const source = pre.querySelector('code')?.textContent ?? pre.textContent ?? '';
+      const button = document.createElement('button');
+      button.className = 'copy-code';
+      button.type = 'button';
+      button.textContent = '复制';
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(source);
+        button.textContent = '已复制';
+        window.setTimeout(() => {
+          button.textContent = '复制';
+        }, 2000);
+      });
+      pre.append(button);
+    });
+  }
+</script>
