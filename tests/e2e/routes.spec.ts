@@ -47,5 +47,5 @@ test('about contains only the public handle and GitHub destination', async ({ pa
   await expect(page.getByRole('heading', { name: 'ParzivalTheGoat' })).toBeVisible();
   await expect(page.locator('main').getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/ParzivalTheGoat');
   await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
-  await expect(page.locator('main')).toHaveText(/ParzivalTheGoat\s+GitHub/);
+  await expect(page.locator('main')).toHaveText('ParzivalTheGoat GitHub');
 });

@@ -92,3 +92,51 @@ Astro logs an expected empty-glob warning for `src/content/blog`; the intentiona
 ## Concerns
 
 No implementation concerns. Astro's empty-content glob warning is expected for this deliberately post-free task state.
+
+## Fix round 1: Reserved tag paths and exact About privacy
+
+### Changes
+
+- Added `getTagHref(tag)` to `src/lib/posts.ts`. It creates a single encoded path segment with `encodeURIComponent` while retaining the caller's raw tag value.
+- Reused the helper in `src/components/PostMeta.astro` and `src/pages/tags/index.astro`; `src/pages/tags/[tag].astro` continues to receive the raw `getStaticPaths()` tag value for labels and filtering.
+- Added a pure helper contract for `C#` and `a/b?c`, expecting `/tags/C%23/` and `/tags/a%2Fb%3Fc/`.
+- Replaced the permissive About regex with the exact normalized main text `ParzivalTheGoat GitHub`.
+
+### TDD evidence
+
+1. Added the unit test before the helper implementation, then ran:
+
+   ```powershell
+   pnpm exec vitest run tests/unit/posts.test.ts
+   ```
+
+   RED result: 1 failed and 10 passed; the failure was `TypeError: getTagHref is not a function` at the new reserved-character contract.
+2. Implemented the helper and its two renderer call sites. Reran the focused unit command: 1 file and 11 tests passed.
+
+### Final fix-round verification
+
+All commands used bundled Node `v24.19.0` and pnpm `11.19.0`.
+
+```powershell
+pnpm exec vitest run tests/unit/posts.test.ts
+pnpm test
+pnpm check
+pnpm run build
+pnpm exec playwright test tests/e2e/routes.spec.ts
+pnpm run validate:design
+```
+
+Results: focused helper unit 11/11 passed; full unit suite 22/22 passed; `pnpm check` reported 0 errors, warnings, and hints; production build completed with 12 pages and Pagefind indexing; focused routes E2E 16/16 passed; design validation passed.
+
+### Fix-round files
+
+- Modified: `src/lib/posts.ts`
+- Modified: `src/components/PostMeta.astro`
+- Modified: `src/pages/tags/index.astro`
+- Modified: `tests/unit/posts.test.ts`
+- Modified: `tests/e2e/routes.spec.ts`
+- Modified: `.superpowers/sdd/2026-08-18-personal-technical-blog/task-5-report.md`
+
+### Fix-round concerns
+
+No implementation concerns. The existing Astro empty-content glob warning and Vite deprecation warning are upstream/tooling output; all requested checks pass.

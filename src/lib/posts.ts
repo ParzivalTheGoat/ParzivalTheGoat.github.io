@@ -4,6 +4,10 @@ import readingTime from 'reading-time';
 export type BlogPost = CollectionEntry<'blog'>;
 export type TaxonomyCount = { name: string; count: number };
 
+export function getTagHref(tag: string): string {
+  return `/tags/${encodeURIComponent(tag)}/`;
+}
+
 export function sortPosts(posts: readonly BlogPost[]): BlogPost[] {
   return [...posts].sort((left, right) => {
     const byDate = right.data.publishedAt.getTime() - left.data.publishedAt.getTime();

@@ -1,5 +1,5 @@
 ---
-import { getReadingMinutes, type BlogPost } from '../lib/posts';
+import { getReadingMinutes, getTagHref, type BlogPost } from '../lib/posts';
 
 interface Props {
   post: BlogPost;
@@ -18,7 +18,7 @@ const publishedLabel = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).f
   {includeTags && post.data.tags.map((tag) => (
     <>
       <span aria-hidden="true">·</span>
-      <a href={`/tags/${tag}/`}>#{tag}</a>
+      <a href={getTagHref(tag)}>#{tag}</a>
     </>
   ))}
   <span aria-hidden="true">·</span>

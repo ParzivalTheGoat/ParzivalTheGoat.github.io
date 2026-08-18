@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedPosts, getTaxonomyCounts } from '../../lib/posts';
+import { getPublishedPosts, getTagHref, getTaxonomyCounts } from '../../lib/posts';
 
 const tags = getTaxonomyCounts(await getPublishedPosts()).tags;
 ---
@@ -13,7 +13,7 @@ const tags = getTaxonomyCounts(await getPublishedPosts()).tags;
     <ul class="taxonomy-list">
       {tags.map(({ name, count }) => (
         <li data-tag-row>
-          <a href={`/tags/${name}/`}>{name}</a>
+          <a href={getTagHref(name)}>{name}</a>
           <span class="mono muted">({count})</span>
         </li>
       ))}

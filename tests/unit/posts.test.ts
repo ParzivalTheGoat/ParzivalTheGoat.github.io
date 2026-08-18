@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import {
   filterPublishedPosts,
   getReadingMinutes,
+  getTagHref,
   getTaxonomyCounts,
   groupPostsByMonth,
   paginatePosts,
@@ -76,6 +77,11 @@ describe('post helpers', () => {
     const counts = getTaxonomyCounts([post('one', '2026-08-01'), post('two', '2026-08-02', false, 'AI 安全', ['模型安全'])]);
     expect(counts.categories).toEqual([{ name: 'AI', count: 1 }, { name: 'AI 安全', count: 1 }]);
     expect(counts.tags).toEqual([{ name: '模型安全', count: 2 }]);
+  });
+
+  it('encodes reserved characters in tag route segments', () => {
+    expect(getTagHref('C#')).toBe('/tags/C%23/');
+    expect(getTagHref('a/b?c')).toBe('/tags/a%2Fb%3Fc/');
   });
 
   it('paginates without inventing pages', () => {
