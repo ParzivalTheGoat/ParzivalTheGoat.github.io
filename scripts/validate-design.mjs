@@ -4,7 +4,6 @@ import { findDesignViolations } from './design-guard.mjs';
 
 const roots = ['src', 'dist'];
 const extensions = new Set(['.astro', '.css', '.html']);
-const generatedSearchDirectory = join('dist', 'pagefind');
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -15,8 +14,7 @@ async function walk(directory) {
   return nested.flat();
 }
 
-const files = (await Promise.all(roots.map(walk))).flat()
-  .filter((file) => extensions.has(extname(file)) && !file.startsWith(generatedSearchDirectory));
+const files = (await Promise.all(roots.map(walk))).flat().filter((file) => extensions.has(extname(file)));
 const violations = [];
 
 for (const file of files) {
