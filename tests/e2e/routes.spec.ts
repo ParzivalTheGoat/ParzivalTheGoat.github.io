@@ -50,8 +50,35 @@ test('about contains only the public handle and GitHub destination', async ({ pa
   await expect(page.locator('main')).toHaveText('ParzivalTheGoat GitHub');
 });
 
-test('machine-readable routes exist', async ({ request }) => {
-  expect((await request.get('/rss.xml')).status()).toBe(200);
-  expect((await request.get('/sitemap-index.xml')).status()).toBe(200);
-  expect((await request.get('/404.html')).status()).toBe(200);
+test('machine-readable routes describe the empty static site', async ({ request }) => {
+  const rssResponse = await request.get('/rss.xml');
+  expect(rssResponse.status()).toBe(200);
+  const rss = await rssResponse.text();
+  expect(rss).toContain('<title>Parzival&apos;s Lab</title>');
+  expect(rss).toContain('<description>ParzivalTheGoat 的个人技术博客</description>');
+  expect(rss).toContain('<link>https://parzivalthegoat.github.io/</link>');
+  expect(rss).toContain('<language>zh-CN</language>');
+  expect(rss.match(/<item>/g) ?? []).toHaveLength(0);
+
+  const sitemapIndexResponse = await request.get('/sitemap-index.xml');
+  expect(sitemapIndexResponse.status()).toBe(200);
+  expect(await sitemapIndexResponse.text()).toContain('<loc>https://parzivalthegoat.github.io/sitemap-0.xml</loc>');
+
+  const sitemapResponse = await request.get('/sitemap-0.xml');
+  expect(sitemapResponse.status()).toBe(200);
+  const sitemap = await sitemapResponse.text();
+  expect(sitemap).toContain('<loc>https://parzivalthegoat.github.io/search/</loc>');
+  expect(sitemap).not.toMatch(/https:\/\/parzivalthegoat\.github\.io\/posts\/[^<]+\//);
+});
+
+test('404 has neutral noindex metadata and a static canonical URL', async ({ page }) => {
+  const response = await page.goto('/404.html');
+  expect(response?.status()).toBe(200);
+  await expect(page.getByRole('heading', { name: '页面不存在' })).toBeVisible();
+  const main = page.locator('main');
+  await expect(main.getByRole('link')).toHaveCount(1);
+  await expect(main.getByRole('link', { name: '返回首页' })).toHaveAttribute('href', '/');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://parzivalthegoat.github.io/404.html');
+  await expect(main.locator('[data-pagefind-ignore]')).toContainText('页面不存在');
 });

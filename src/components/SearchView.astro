@@ -11,31 +11,50 @@
   const input = document.querySelector<HTMLInputElement>('#query');
   const status = document.querySelector<HTMLElement>('.search-status');
   const list = document.querySelector<HTMLOListElement>('.search-results');
+  const button = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+  let generation = 0;
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!input || !status || !list) return;
+    if (!input || !status || !list || !button) return;
 
-    const pagefindPath = '/pagefind/' + 'pagefind.js';
-    const pagefind = await import(pagefindPath);
-    const search = await pagefind.search(input.value.trim());
+    const request = ++generation;
+    const query = input.value.trim();
     list.replaceChildren();
+    status.textContent = '正在搜索';
+    form.setAttribute('aria-busy', 'true');
+    input.disabled = true;
+    button.disabled = true;
 
-    if (search.results.length === 0) {
-      status.textContent = '没有找到匹配内容';
-      return;
-    }
+    try {
+      const pagefindPath = '/pagefind/' + 'pagefind.js';
+      const pagefind = await import(pagefindPath) as typeof import('/pagefind/pagefind.js');
+      const search = await pagefind.search(query);
+      const results = document.createDocumentFragment();
 
-    status.textContent = `${search.results.length} 条结果`;
+      for (const result of search.results) {
+        const data = await result.data();
+        if (request !== generation) return;
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = data.url;
+        link.textContent = data.meta.title;
+        item.append(link);
+        results.append(item);
+      }
 
-    for (const result of search.results) {
-      const data = await result.data();
-      const item = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = data.url;
-      link.textContent = data.meta.title;
-      item.append(link);
-      list.append(item);
+      if (request !== generation) return;
+      list.replaceChildren(results);
+      status.textContent = search.results.length === 0 ? '没有找到匹配内容' : `${search.results.length} 条结果`;
+    } catch {
+      if (request !== generation) return;
+      list.replaceChildren();
+      status.textContent = '搜索暂时不可用';
+    } finally {
+      if (request !== generation) return;
+      form.setAttribute('aria-busy', 'false');
+      input.disabled = false;
+      button.disabled = false;
     }
   });
 </script>

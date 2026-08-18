@@ -1,7 +1,15 @@
 /// <reference path="../.astro/types.d.ts" />
 
-declare module '/pagefind/pagefind.js' {
+declare namespace PagefindCore {
   type PagefindData = { url: string; meta: { title: string } };
   type PagefindResult = { data(): Promise<PagefindData> };
-  export function search(query: string): Promise<{ results: PagefindResult[] }>;
+  type Search = (query: string) => Promise<{ results: PagefindResult[] }>;
+}
+
+declare module '/pagefind/pagefind.js' {
+  export const search: PagefindCore.Search;
+}
+
+declare module '*/pagefind/pagefind.js' {
+  export const search: PagefindCore.Search;
 }

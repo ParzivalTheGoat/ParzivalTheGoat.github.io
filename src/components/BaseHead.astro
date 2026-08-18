@@ -5,11 +5,12 @@ interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  canonicalPath?: string;
 }
 
-const { title, description = SITE.description, noindex = false } = Astro.props;
+const { title, description = SITE.description, noindex = false, canonicalPath } = Astro.props;
 const pageTitle = title ? `${title} — ${SITE.title}` : SITE.title;
-const canonical = new URL(Astro.url.pathname, SITE.url);
+const canonical = new URL(canonicalPath ?? Astro.url.pathname, SITE.url);
 ---
 
 <meta charset="utf-8" />
