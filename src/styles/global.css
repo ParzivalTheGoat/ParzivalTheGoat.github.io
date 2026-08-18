@@ -37,7 +37,16 @@ main h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 500; line-height:
 .taxonomy-list li { border-bottom: 1px solid var(--rule); display: flex; gap: 0.75rem; justify-content: space-between; padding-block: 1rem; }
 .pagination { border-block: 1px solid var(--rule); display: flex; justify-content: space-between; margin-top: clamp(2rem, 6vw, 4rem); padding-block: 1rem; }
 .archive-group + .archive-group { margin-top: clamp(3rem, 8vw, 7rem); }
+.search-form { align-items: end; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr) auto; }
+.search-form label { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; grid-column: 1 / -1; }
+.search-form input { background: transparent; border: 0; border-bottom: 1px solid var(--rule); min-width: 0; padding: 0.5rem 0; }
+.search-form input:focus { border-color: var(--accent); outline: none; }
+.search-form button { background: transparent; border: 1px solid var(--rule); cursor: pointer; padding: 0.5rem 0.75rem; }
+.search-form button:hover { border-color: var(--accent); color: var(--accent); }
+.search-status { color: var(--muted); margin: 1.5rem 0 0; }
+.search-results { border-top: 1px solid var(--rule); margin: 1.5rem 0 0; padding: 0; }
+.search-results li { border-bottom: 1px solid var(--rule); padding-block: 1rem; }
 .footer-inner { color: var(--muted); font-size: 0.75rem; flex-wrap: wrap; }
 .footer-inner span { margin-right: auto; }
-@media (max-width: 40rem) { nav { flex-basis: 100%; order: 3; } .post-row { grid-template-columns: 1fr; } .post-meta { grid-column: auto; grid-row: auto; max-width: none; } .footer-inner span { margin-right: 0; width: 100%; } }
+@media (max-width: 40rem) { nav { flex-basis: 100%; order: 3; } .post-row { grid-template-columns: 1fr; } .post-meta { grid-column: auto; grid-row: auto; max-width: none; } .footer-inner span { margin-right: 0; width: 100%; } .search-form { grid-template-columns: 1fr; } .search-form button { justify-self: start; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; } }

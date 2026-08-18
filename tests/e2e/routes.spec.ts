@@ -49,3 +49,9 @@ test('about contains only the public handle and GitHub destination', async ({ pa
   await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   await expect(page.locator('main')).toHaveText('ParzivalTheGoat GitHub');
 });
+
+test('machine-readable routes exist', async ({ request }) => {
+  expect((await request.get('/rss.xml')).status()).toBe(200);
+  expect((await request.get('/sitemap-index.xml')).status()).toBe(200);
+  expect((await request.get('/404.html')).status()).toBe(200);
+});

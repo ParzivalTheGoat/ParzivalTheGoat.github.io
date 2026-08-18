@@ -1,0 +1,41 @@
+<form class="search-form" role="search">
+  <label for="query">搜索文章</label>
+  <input id="query" name="query" type="search" autocomplete="off" />
+  <button type="submit">搜索</button>
+</form>
+<p class="search-status" aria-live="polite"></p>
+<ol class="search-results"></ol>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.search-form');
+  const input = document.querySelector<HTMLInputElement>('#query');
+  const status = document.querySelector<HTMLElement>('.search-status');
+  const list = document.querySelector<HTMLOListElement>('.search-results');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!input || !status || !list) return;
+
+    const pagefindPath = '/pagefind/' + 'pagefind.js';
+    const pagefind = await import(pagefindPath);
+    const search = await pagefind.search(input.value.trim());
+    list.replaceChildren();
+
+    if (search.results.length === 0) {
+      status.textContent = '没有找到匹配内容';
+      return;
+    }
+
+    status.textContent = `${search.results.length} 条结果`;
+
+    for (const result of search.results) {
+      const data = await result.data();
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = data.url;
+      link.textContent = data.meta.title;
+      item.append(link);
+      list.append(item);
+    }
+  });
+</script>
