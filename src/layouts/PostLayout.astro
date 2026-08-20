@@ -1,7 +1,7 @@
 ---
 import PostMeta from '../components/PostMeta.astro';
 import TableOfContents from '../components/TableOfContents.astro';
-import type { BlogPost } from '../lib/posts';
+import { getPostHref, type BlogPost } from '../lib/posts';
 import '../styles/prose.css';
 import BaseLayout from './BaseLayout.astro';
 
@@ -35,8 +35,8 @@ const { post, headings, newer, older } = Astro.props;
   </div>
   {(newer || older) && (
     <nav class="post-navigation" aria-label="文章导航">
-      {newer && <a href={`/posts/${newer.id}/`}>较新文章：{newer.data.title}</a>}
-      {older && <a href={`/posts/${older.id}/`}>较早文章：{older.data.title}</a>}
+      {newer && <a href={getPostHref(newer.id)}>较新文章：{newer.data.title}</a>}
+      {older && <a href={getPostHref(older.id)}>较早文章：{older.data.title}</a>}
     </nav>
   )}
 </BaseLayout>

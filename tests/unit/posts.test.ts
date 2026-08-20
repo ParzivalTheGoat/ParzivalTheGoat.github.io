@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import {
   filterPublishedPosts,
+  getPostHref,
   getReadingMinutes,
   getTagHref,
   getTaxonomyCounts,
@@ -82,6 +83,11 @@ describe('post helpers', () => {
   it('encodes reserved characters in tag route segments', () => {
     expect(getTagHref('C#')).toBe('/tags/C%23/');
     expect(getTagHref('a/b?c')).toBe('/tags/a%2Fb%3Fc/');
+  });
+
+  it('encodes reserved characters in post route segments', () => {
+    expect(getPostHref('C#')).toBe('/posts/C%23/');
+    expect(getPostHref('a/b?c')).toBe('/posts/a%2Fb%3Fc/');
   });
 
   it('paginates without inventing pages', () => {
