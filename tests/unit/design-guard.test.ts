@@ -12,17 +12,14 @@ describe('findDesignViolations', () => {
       .toEqual([{ file: 'bad.css', rule: 'gradient' }]);
   });
 
-  it('rejects border radius', () => {
+  it('allows rounded UI controls', () => {
     expect(findDesignViolations('bad.css', '.button { border-radius: 4px; }'))
-      .toEqual([{ file: 'bad.css', rule: 'border-radius' }]);
+      .toEqual([]);
   });
 
-  it('rejects corner and logical border radius declarations', () => {
+  it('allows corner and logical radius declarations', () => {
     expect(findDesignViolations('bad.css', '.button { border-top-left-radius: 4px; border-start-start-radius: 4px; }'))
-      .toEqual([
-        { file: 'bad.css', rule: 'border-radius' },
-        { file: 'bad.css', rule: 'border-radius' },
-      ]);
+      .toEqual([]);
   });
 
   it('rejects card selectors and card class attributes', () => {

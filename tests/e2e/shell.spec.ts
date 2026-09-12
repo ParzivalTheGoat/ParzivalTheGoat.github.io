@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test';
 
+test('mobile menu supports Escape, navigation, and the smallest viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/');
+  const navigation = page.getByRole('navigation', { name: '主导航' });
+  const menu = page.locator('.menu-toggle');
+  await expect(navigation).toBeHidden();
+  await menu.click();
+  await expect(navigation).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await page.keyboard.press('Escape');
+  await expect(navigation).toBeHidden();
+  await expect(menu).toBeFocused();
+  await menu.click();
+  await navigation.getByRole('link', { name: '分类', exact: true }).click();
+  await expect(page).toHaveURL(/\/categories\/$/);
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await menu.click();
+  await expect(navigation.getByRole('link', { name: '分类', exact: true })).toHaveAttribute('aria-current', 'page');
+});
+
+test('nested category highlights its parent navigation button', async ({ page }) => {
+  await page.goto('/categories/AI/');
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '分类', exact: true }))
+    .toHaveAttribute('aria-current', 'page');
+});
+
 test('home has factual metadata and no slogan', async ({ page }) => {
   await page.goto('/');
 

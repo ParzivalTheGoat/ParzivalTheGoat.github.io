@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { post, includeTags = true } = Astro.props;
+const linkTags = !post.data.draft && post.data.publishedAt <= new Date();
 const publishedAt = post.data.publishedAt.toISOString();
 const publishedLabel = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.publishedAt);
 const updatedAt = post.data.updatedAt?.toISOString();
@@ -21,7 +22,7 @@ const updatedLabel = post.data.updatedAt && new Intl.DateTimeFormat('zh-CN', { d
   {includeTags && post.data.tags.map((tag) => (
     <>
       <span aria-hidden="true">·</span>
-      <a href={getTagHref(tag)}>#{tag}</a>
+      {linkTags ? <a href={getTagHref(tag)}>#{tag}</a> : <span>#{tag}</span>}
     </>
   ))}
   <span aria-hidden="true">·</span>

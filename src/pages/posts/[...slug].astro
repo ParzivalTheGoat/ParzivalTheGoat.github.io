@@ -1,8 +1,8 @@
 ---
-import { render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { buildPostPaths } from '../../lib/post-paths';
-import { getPublishedPosts, type BlogPost } from '../../lib/posts';
+import { getPublishedPosts, sortPosts, type BlogPost } from '../../lib/posts';
 
 interface Props {
   post: BlogPost;
@@ -11,7 +11,12 @@ interface Props {
 }
 
 export async function getStaticPaths() {
-  return buildPostPaths(await getPublishedPosts());
+  // Only direct article routes expose drafts during local development.
+  // Production routes, feeds, and discovery pages keep using published content.
+  const posts = import.meta.env.DEV
+    ? sortPosts(await getCollection('blog'))
+    : await getPublishedPosts();
+  return buildPostPaths(posts);
 }
 
 const { post, newer, older }: Props = Astro.props;

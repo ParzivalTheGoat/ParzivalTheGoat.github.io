@@ -1,4 +1,10 @@
-<button class="theme-toggle mono" type="button" aria-label="切换深浅主题" aria-pressed="false">主题</button>
+---
+import Icon from './Icon.astro';
+---
+<button class="theme-toggle" type="button" aria-label="切换深浅主题" aria-pressed="false" title="切换深浅主题">
+  <span class="theme-sun"><Icon name="sun" /></span>
+  <span class="theme-moon"><Icon name="moon" /></span>
+</button>
 
 <script>
   const button = document.querySelector<HTMLButtonElement>('.theme-toggle');
@@ -6,7 +12,10 @@
   const systemTheme = matchMedia('(prefers-color-scheme: dark)');
 
   const activeTheme = () => root.dataset.theme ?? (systemTheme.matches ? 'dark' : 'light');
-  const syncPressedState = () => button?.setAttribute('aria-pressed', String(activeTheme() === 'dark'));
+  const syncPressedState = () => {
+    button?.setAttribute('aria-pressed', String(activeTheme() === 'dark'));
+    button?.setAttribute('title', activeTheme() === 'dark' ? '切换到浅色模式' : '切换到深色模式');
+  };
 
   syncPressedState();
   systemTheme.addEventListener('change', () => {

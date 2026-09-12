@@ -28,3 +28,11 @@ const { headings } = Astro.props;
     </details>
   </aside>
 )}
+
+<script>
+  const details = document.querySelector<HTMLDetailsElement>('.toc-region details');
+  const desktop = matchMedia('(min-width: 70rem)');
+  const syncDirectory = () => { if (details) details.open = desktop.matches; };
+  syncDirectory();
+  desktop.addEventListener('change', syncDirectory);
+</script>

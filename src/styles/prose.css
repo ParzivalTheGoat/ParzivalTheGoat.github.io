@@ -10,14 +10,16 @@
 
 .post-header, .post-content-layout, .post-navigation { max-width: var(--reading-width); }
 .post-header { border-bottom: 1px solid var(--rule); padding-bottom: clamp(2rem, 5vw, 4rem); }
-.post-header .post-meta { margin-bottom: 1rem; max-width: none; }
-.post-header h1 { font-size: clamp(2.5rem, 7vw, 5rem); }
+.post-header .post-meta { margin-top: 1.75rem; max-width: none; align-items: center; }
+.post-header h1 { font-size: clamp(2rem, 4.2vw, 3.5rem); line-height: 1.32; letter-spacing: -0.025em; text-wrap: pretty; }
+.post-header .post-description { color: var(--muted); font-size: 1.0625rem; line-height: 1.9; margin: 1.5rem 0 0; }
+.draft-notice { color: var(--accent); font: 500 0.75rem/1.5 system-ui, sans-serif; margin: 0 0 1.25rem; }
 .post-content-layout { margin-top: clamp(2rem, 5vw, 4rem); }
-.prose { font-size: clamp(1rem, 1vw + 0.8rem, 1.125rem); line-height: 1.8; }
+.prose { font-size: clamp(1rem, 1vw + 0.8rem, 1.125rem); line-height: 1.95; overflow-wrap: anywhere; }
 .prose > :first-child { margin-top: 0; }
 .prose > :last-child { margin-bottom: 0; }
-.prose h2, .prose h3, .prose h4 { line-height: 1.2; margin-top: clamp(3rem, 7vw, 5rem); scroll-margin-top: 2rem; }
-.prose h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+.prose h2, .prose h3, .prose h4 { line-height: 1.5; margin-top: clamp(2.75rem, 6vw, 4rem); scroll-margin-top: 2rem; text-wrap: pretty; }
+.prose h2 { font-size: clamp(1.4rem, 3vw, 1.85rem); }
 .prose h3 { font-size: clamp(1.35rem, 3vw, 1.75rem); }
 .prose :is(p, ul, ol, blockquote, pre, table) { margin-block: 1.5rem; }
 .prose ul, .prose ol { padding-left: 1.5rem; }
@@ -32,12 +34,20 @@
 .copy-code:hover { color: var(--accent); }
 .prose a { text-decoration-thickness: 1px; }
 .prose :is(h2, h3, h4) a:focus-visible { outline: 2px solid var(--accent); outline-offset: 0.2em; }
-.prose table { border-collapse: collapse; width: 100%; }
+.prose img { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.prose p:has(> img) { margin-top: 2rem; }
+.prose p:has(> img) + p:has(> em:only-child) { margin-top: -0.5rem; color: var(--muted); font: 0.8125rem/1.8 system-ui, sans-serif; text-align: center; }
+.prose p:has(> img) + p > em:only-child { font-style: normal; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin-block: 1.5rem; }
+.prose table { border-collapse: collapse; width: 100%; font-size: 0.875rem; line-height: 1.8; }
+.table-scroll table { margin: 0; }
 .prose th, .prose td { border: 1px solid var(--rule); padding: 0.5rem; text-align: left; }
 .toc-region { border-top: 1px solid var(--rule); color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; margin-bottom: 2rem; padding-top: 0.75rem; }
 .toc-region summary { cursor: pointer; }
 .toc-region ol { list-style: none; margin: 0.75rem 0 0; padding: 0; }
 .toc-region li + li { margin-top: 0.5rem; }
+.toc-region a { text-decoration: none; line-height: 1.8; }
+.toc-region a:hover { text-decoration: underline; }
 .toc-depth-3 { padding-left: 1rem; }
 .toc-depth-4 { padding-left: 2rem; }
 .post-navigation { border-top: 1px solid var(--rule); display: grid; gap: 0.75rem; margin-top: clamp(3rem, 7vw, 5rem); padding-top: 1rem; }

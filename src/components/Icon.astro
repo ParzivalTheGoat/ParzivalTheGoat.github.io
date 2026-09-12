@@ -1,0 +1,17 @@
+---
+interface Props { name: string; }
+const paths: Record<string, string> = {
+  posts: 'M5 3h14v18H5z M9 7h6 M9 11h6 M9 15h4',
+  categories: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
+  tags: 'M3 3h8l10 10-8 8L3 11z M7 7h.01',
+  archive: 'M3 3h18v5H3z M5 8v13h14V8 M9 12h6',
+  search: 'M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
+  about: 'M12 11v6 M12 7h.01 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8 M12 2v2 M12 20v2 M2 12h2 M20 12h2 M5 5l1.5 1.5 M17.5 17.5l1.5 1.5 M5 19l1.5-1.5 M17.5 6.5l1.5-1.5',
+  moon: 'M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z',
+  arrow: 'M5 12h14 M13 6l6 6-6 6',
+  external: 'M7 17 17 7 M7 7h10v10',
+  rss: 'M4 4a16 16 0 0 1 16 16 M4 11a9 9 0 0 1 9 9 M5 19h.01',
+};
+---
+<svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={paths[Astro.props.name] ?? paths.arrow} /></svg>

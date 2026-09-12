@@ -19,13 +19,16 @@ interface Props {
 }
 
 const { post, headings, newer, older } = Astro.props;
+const isPreview = post.data.draft || post.data.publishedAt > new Date();
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description}>
+<BaseLayout title={post.data.title} description={post.data.description} noindex={isPreview}>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
   <header class="post-header">
-    <PostMeta post={post} />
+    {isPreview && <p class="draft-notice" role="note">本地草稿预览 · 尚未发布</p>}
     <h1>{post.data.title}</h1>
+    <p class="post-description">{post.data.description}</p>
+    <PostMeta post={post} />
   </header>
   <div class="post-content-layout">
     <TableOfContents headings={headings} />
@@ -55,6 +58,18 @@ const { post, headings, newer, older } = Astro.props;
 
   updateProgress();
   window.addEventListener('scroll', updateProgress, { passive: true });
+  window.addEventListener('resize', updateProgress);
+  new ResizeObserver(updateProgress).observe(document.body);
+
+  document.querySelectorAll<HTMLTableElement>('.prose table').forEach((table) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-scroll';
+    wrapper.tabIndex = 0;
+    wrapper.setAttribute('role', 'region');
+    wrapper.setAttribute('aria-label', '表格，可横向滚动');
+    table.before(wrapper);
+    wrapper.append(table);
+  });
 
   if (navigator.clipboard) {
     document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
