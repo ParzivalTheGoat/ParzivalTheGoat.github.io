@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>写作台</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail" aria-label="文章">
+        <div class="rail-head">
+          <span class="wordmark">写作台</span>
+          <button class="text-button" type="button" data-action="new">新建</button>
+        </div>
+        <nav class="post-list" id="post-list"></nav>
+        <div class="rail-foot">
+          <p class="sync-line" id="sync-line">正在检查同步状态</p>
+          <button class="text-button" type="button" data-action="sync">同步</button>
+        </div>
+      </aside>
+
+      <main class="desk" id="desk">
+        <header class="topbar">
+          <p class="doc-state" id="doc-state"></p>
+          <div class="topbar-actions">
+            <button class="text-button" type="button" data-action="unpublish" hidden>撤回成草稿</button>
+            <button class="ink-button" type="button" data-action="publish" disabled>发布</button>
+          </div>
+        </header>
+
+        <article class="sheet" id="sheet" hidden>
+          <textarea class="title-input" id="title" rows="1" placeholder="标题" spellcheck="false"></textarea>
+          <textarea class="summary-input" id="description" rows="1" placeholder="一句话说明这篇在讲什么"></textarea>
+
+          <dl class="meta-row">
+            <div>
+              <dt>分类</dt>
+              <dd><select id="category"></select></dd>
+            </div>
+            <div>
+              <dt>标签</dt>
+              <dd class="tags" id="tags">
+                <input id="tag-input" placeholder="回车添加" />
+              </dd>
+            </div>
+            <div>
+              <dt>日期</dt>
+              <dd><input id="published-at" type="date" /></dd>
+            </div>
+            <div>
+              <dt>网址</dt>
+              <dd class="slug">/posts/<input id="slug" spellcheck="false" />/</dd>
+            </div>
+          </dl>
+
+          <div class="editor" id="editor"></div>
+
+          <footer class="sheet-foot">
+            <span id="word-count">0 字</span>
+            <span>输入 <kbd>/</kbd> 插入标题、列表、图片 · 截图直接粘贴或拖进来</span>
+            <button class="text-button quiet" type="button" data-action="delete">删除草稿</button>
+          </footer>
+        </article>
+
+        <section class="empty-desk" id="empty-desk" hidden>
+          <p>还没有打开任何文章。</p>
+          <button class="text-button" type="button" data-action="new">写一篇</button>
+        </section>
+      </main>
+    </div>
+
+    <div class="bubble" id="bubble" role="toolbar" aria-label="格式">
+      <div class="bubble-text">
+        <button type="button" data-mark="bold" title="加粗 Ctrl+B"><b>粗</b></button>
+        <button type="button" data-mark="italic" title="斜体 Ctrl+I"><i>斜</i></button>
+        <button type="button" data-mark="code" title="行内代码">代码</button>
+        <button type="button" data-mark="link" title="链接">链接</button>
+        <span class="bubble-rule"></span>
+        <button type="button" data-block="h2" title="小标题">标题</button>
+        <button type="button" data-block="quote" title="引用">引用</button>
+      </div>
+      <label class="bubble-image">图片说明 <input id="alt-input" placeholder="这张图在说明什么" /></label>
+    </div>
+
+    <div class="slash" id="slash" role="listbox" hidden></div>
+
+    <dialog class="sheet-dialog" id="new-dialog">
+      <form method="dialog">
+        <h2>写点什么？</h2>
+        <p class="dialog-lede">模板只给几个提问，正文全部由你来写。不想要的提问直接删掉。</p>
+        <div class="templates" id="templates"></div>
+        <div class="dialog-actions"><button class="text-button" value="cancel">取消</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet-dialog" id="publish-dialog">
+      <form method="dialog">
+        <h2 id="publish-title">发布</h2>
+        <div id="publish-body"></div>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel">再想想</button>
+          <button class="ink-button" value="confirm" id="publish-confirm">发布上线</button>
+        </div>
+      </form>
+    </dialog>
+
+    <p class="toast" id="toast" role="status" aria-live="polite"></p>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

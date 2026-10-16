@@ -12,7 +12,8 @@
     "build": "pnpm run build:site && pnpm run build:search && pnpm run validate:design",
     "preview": "astro preview",
     "test:e2e": "playwright test",
-    "verify": "pnpm run check && pnpm run test && pnpm run build && pnpm run test:e2e"
+    "verify": "pnpm run check && pnpm run test && pnpm run build && pnpm run test:e2e",
+    "write": "node tools/writer/server.mjs"
   },
   "packageManager": "pnpm@11.19.0",
   "engines": {
@@ -32,8 +33,17 @@
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/extension-bubble-menu": "^3.32.0",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/markdown": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
     "pagefind": "^1.5.2",
+    "sharp": "^0.34.5",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
+    "vite": "8.2.1",
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }
