@@ -107,8 +107,12 @@ const editor = createEditor({
     const { openDrawing } = await import('./drawing.js');
     const result = await openDrawing({ from });
     if (!result) return null;
-    const { url } = await api.uploadDrawing(state.current.slug, result.svg);
-    return url;
+    try {
+      const { url } = await api.uploadDrawing(state.current.slug, result.svg);
+      return url;
+    } catch (error) {
+      throw new Error(`图没存上：${error.message}`);
+    }
   },
   onError: (message) => toast(message, 'error'),
 });

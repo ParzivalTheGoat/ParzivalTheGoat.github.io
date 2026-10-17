@@ -251,7 +251,9 @@ export async function openDrawing({ from } = {}) {
   };
   if (from) {
     const blob = await (await fetch(from)).blob();
-    const scene = await loadFromBlob(blob, null, null);
+    const scene = await loadFromBlob(blob, null, null).catch(() => {
+      throw new Error('这张图不是用画板画的，没法接着改');
+    });
     initialData = { elements: scene.elements, files: scene.files, appState: { ...initialData.appState, ...pickStyle(scene.appState) }, scrollToContent: true };
   }
 

@@ -62,7 +62,7 @@ export function createEditor({ element, bubble, slash, hints, onChange, uploadIm
   async function drawPicture(node) {
     const from = node?.attrs.src;
     const url = await draw(from).catch((error) => {
-      onError(`图没存上：${error.message}`);
+      onError(error.message);
       return null;
     });
     if (!url) return editor.commands.focus();
