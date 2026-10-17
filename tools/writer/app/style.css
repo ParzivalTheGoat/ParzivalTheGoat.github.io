@@ -263,13 +263,32 @@ button { cursor: pointer; }
   letter-spacing: 0.01em;
 }
 
-.wordmark::before {
-  animation: clay-breathe 3s ease-in-out infinite;
-  background: var(--clay);
-  border-radius: 50%;
-  content: '';
-  height: 7px;
-  width: 7px;
+/* 标志：笔尖落在一行字上。打开时这行字从左往右写出来，鼠标移上去笔尖点一下。 */
+.logo { height: 1.375rem; overflow: visible; width: 1.375rem; }
+
+.logo-line {
+  animation: logo-write 0.9s var(--ease-enter) 0.2s backwards;
+  fill: none;
+  stroke: currentColor;
+  stroke-dasharray: 12;
+  stroke-linecap: round;
+  stroke-width: 1.7;
+}
+
+.logo-nib {
+  fill: var(--clay);
+  stroke: var(--clay);
+  stroke-linejoin: round;
+  stroke-width: 0.6;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.5s var(--spring);
+}
+
+.wordmark:hover .logo-nib { transform: rotate(-9deg); }
+
+@keyframes logo-write {
+  from { stroke-dashoffset: 12; }
 }
 
 .post-list {

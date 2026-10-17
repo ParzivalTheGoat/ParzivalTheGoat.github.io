@@ -4,13 +4,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>写作台</title>
-    <link rel="icon" href="data:," />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3Cmask id='c'%3E%3Crect x='-6' y='-17' width='12' height='18' fill='white'/%3E%3Cpath d='M0-2.4V-7.6' stroke='black' stroke-width='1.2' stroke-linecap='round'/%3E%3Ccircle cy='-9.2' r='1.5'/%3E%3C/mask%3E%3C/defs%3E%3Cpath d='M9.5 20.5H21' stroke='%23d97757' stroke-width='2' stroke-linecap='round'/%3E%3Cpath transform='translate(6.2 20.2) rotate(38)' mask='url(%23c)' d='M0 0L-4.4-8.6-3.2-15.5H3.2L4.4-8.6Z' fill='%23d97757' stroke='%23d97757' stroke-width='.6' stroke-linejoin='round'/%3E%3C/svg%3E" />
   </head>
   <body>
     <div class="shell">
       <aside class="rail" aria-label="文章">
         <div class="rail-head">
-          <span class="wordmark">写作台</span>
+          <span class="wordmark">
+            <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <mask id="nib-cut">
+                  <rect x="-6" y="-17" width="12" height="18" fill="#fff" />
+                  <path d="M0-2.4V-7.6" stroke="#000" stroke-width="1.2" stroke-linecap="round" />
+                  <circle cy="-9.2" r="1.5" fill="#000" />
+                </mask>
+              </defs>
+              <path class="logo-line" d="M9.5 20.5H21" />
+              <g transform="translate(6.2 20.2) rotate(38)">
+                <path class="logo-nib" mask="url(#nib-cut)" d="M0 0L-4.4-8.6-3.2-15.5H3.2L4.4-8.6Z" />
+              </g>
+            </svg>
+            写作台
+          </span>
           <button class="text-button" type="button" data-action="new">新建</button>
         </div>
         <nav class="post-list" id="post-list"></nav>
