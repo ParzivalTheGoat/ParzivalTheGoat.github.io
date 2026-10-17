@@ -255,35 +255,28 @@ button { cursor: pointer; }
   padding: 0 0.75rem 0 1.1rem;
 }
 
-/*
- * 「写作台」三个字用霞鹜文楷粗体，和笔尖标志一样有手写感，也和文章标题的宋体区分开。
- * 只截取了这三个字（SIL OFL 1.1，https://github.com/lxgw/LxgwWenKai），不用额外装字体包。
- */
-@font-face {
-  font-display: block;
-  font-family: 'Writer Wordmark';
-  src: url(data:font/woff2;base64,d09GMgABAAAAAAKcABEAAAAABKgAAAJFAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbIBw8BmAqSAA0EQgKglSCOAE2AiQDBgsGAAQgBQYHIBckGAYbXQMALgZjN81CRTipgCEMSJt3hjAt2ubj4fn9Uee+P6DSxFnKjWnjRhBVJUJZIfM3AGCA659fV29WOkERcIMV55/kylBW7UC5wXmMYWhxJlkynYj4/etOf7Fvl+uNLhBYFAaeBVoQx9RWRIFGFKAGrukOpyM9Y8RqBwhUAAJJCIEyHbrE9JleQVCiAPIcECgz2liFnlHPrqzYZBjcHZmWSNgHkbQ/Mietd4ukIOOlW5BOE8Iwj5dio6EwBCnRAIC9mb/aNRTr8e/QjcSMHAUlmBIQEO/TgB4lAiBO5mDBPCFDg0yULtCDgjpYcvk/7+d9twAh8lw1SKAACUdxBlAASFuaD+AeH8NMpMcLbmEiQf+n0IN7wDexSoWlT2H5ynIktaEW2dC1NSTV0lgZlYLu/dzl7Qzp1ag0EIS2tTER1HLPzAZ0btqQq3leAxH9stFooqK5P+jzQXyyszUljkyKfrj3Mni+0eH6+LaJjav6K8XZhwsNZnJqiHTtjJsqli29I6HNYkuLkaIaBgdqKd7V1dTXxQ4aqruvVFvdWXQMllhmoS+6KpIOmnNbxbZsG+hsyzipNfrXKw0VRf2se0WkaBz2/rufODcQZ4lFFUp976qE7kxDeZrYZtPizF8Nj17bUJhMirW6SHHlLaa4UL1RJuq4bgmAQEz2+6tzV3j1+Fe6AfECvv0c/OhVN4zM27Mqwr9QIoEgu/WP7JeRdmanYACAyC5sNFIgOSqBIFwk48y7DSmjBgo//q7J9D2iJhMicv4lEwA=) format('woff2');
-  unicode-range: U+5199;
-}
-@font-face {
-  font-display: block;
-  font-family: 'Writer Wordmark';
-  src: url(data:font/woff2;base64,d09GMgABAAAAAAI8ABEAAAAABEAAAAHkAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbIBw8BmAqSAA0EQgKgWyBZAE2AiQDBgsGAAQgBQYHIBckGAYbCQMAjpRu3jSCII+qOsksTJ2EJ4gnkUKMXHf6i327XG90gYNdKOBAC+KY2ooo0CjBSDm3S4gRMe0DBEoAAokQAsXUUEsMGDRigiIyyHNAoJguuinojOosXrdwuWZL5q5aalgOc2nF3A2rerdIsvTd5OkFybFkCob7UczSLlqQJEUAsDcjpgyeHHXG/5gb0zU5siJREwHxTvIY6igiAGJHDhbME6SoIBXUmTrI6mD8j3muK+8uK0CIPFcaJCBDitFYBMgAaaua2fZj1V7s9cWEh4sdu1Tpzthb/Jbik9+ffNXe4sefuGPPOxPen/zsuEux967ixye+a8/tN6859mxcF3snXXtt1NLQ+fNR2nNhwj323Dyn5p5J8yfP6VS3X/Hr28zq0/abcr+Ur3hk06HqJcu0rzI0O3jHhPN7W5UrkrxU5fyHQybeVvL7GkMO3F686DUlqtxy//DR5Ys3Wtnj/qp9y/SrXKT0B/V+LChZvtRN95SvP6tkiWtrvvFmydKdnytcp0ahfSuLln/lTBkgEH3MvnPeH7NL9/itaPP0B/j4v3vAd3/eX9u0fHop7SIUkYAgvT5H+oNpxqWXBAAg0h/MMk0gMVoKQnAhKTevrZ0yyih47+8yP6NdFE0/R+T8b10AAAA=) format('woff2');
-  unicode-range: U+53F0;
-}
-@font-face {
-  font-display: block;
-  font-family: 'Writer Wordmark';
-  src: url(data:font/woff2;base64,d09GMgABAAAAAAJMABEAAAAABGQAAAH1AAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbIBw8BmAqSAA0EQgKghCCBgE2AiQDBgsGAAQgBQYHIBckGAYbKwNRlM3BH4AHItD7bzZ5HwIOVCW5ulrswErOutNf7NvlerIsgcACSjiPCpIkprYiCjRKMFJOdzjFvjFK1QEIYAoACKAgCAIY44o7kptfWoshOgBNAwAEMCaRZPRmRp4DE/tGCB7sGjskGIEuGu2aPLa3i4hOfahcW4CyUmkESvRI2omWUFAUQwAAoK5KGwsaxLOi1Teq47XloDMUN0AA5IFyEfDEEAEAkNnactiAuQKogC0qElqHJ6ArBSpaNY33nNqPACCIpmEBgAKADlCADmAGAKADAJSJLPcxK6/ITumIfVB7yHilLHjc8LhhpzgvMFl1/jDza18eXGV3mfm+nTQcPGiy6vDhNGvrGuZ335YFW1tOJJfHz8WewbX/XbbNH+5x9rAucBWTl1WrSrN/G5uaG6fVBBSUr/Hoe2FiYmVhnP7W1DV7daHDCsuPzlaWZ6Ltpq81ZIah0blGQ8szL82ZfsioatDI+KCTvtWZX6afXZaajfEwb1QOpVRkx583NrcwvjU0b6NrlLu1lUnEE1Nj1Cef6tROyXMHAAEkk6SE/JwOi9RvRiHqO4Dn/44D8ObnKQ+ctW3qHTUNwRAFAAF1lwao73DGUb2DAAAAAKK+ox1nBFDoQAFAMNZHxal5EE0ulug9+m350zcGW/UBIFH7TQwA) format('woff2');
-  unicode-range: U+4F5C;
-}
-
 .wordmark {
   align-items: center;
   display: inline-flex;
-  font: 400 1.1875rem/1 'Writer Wordmark', var(--serif);
-  gap: 0.5rem;
-  letter-spacing: 0.04em;
+  gap: 0.55rem;
+}
+
+/* 「写作台」是自己画的单线字：和标志一样的圆头线条，写字底下那一横用陶土色，像刚落下的墨。 */
+.lettering { height: 1.1875rem; overflow: visible; width: auto; }
+
+.lettering path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 9;
+}
+
+.lettering .ink {
+  animation: logo-write 0.9s var(--ease-enter) 0.35s backwards;
+  stroke: var(--clay);
+  stroke-dasharray: 56;
+  --dash: 56;
 }
 
 /* 标志：笔尖落在一行字上。打开时这行字从左往右写出来，鼠标移上去笔尖点一下。 */
@@ -311,7 +304,7 @@ button { cursor: pointer; }
 .wordmark:hover .logo-nib { transform: rotate(-9deg); }
 
 @keyframes logo-write {
-  from { stroke-dashoffset: 12; }
+  from { stroke-dashoffset: var(--dash, 12); }
 }
 
 .post-list {
