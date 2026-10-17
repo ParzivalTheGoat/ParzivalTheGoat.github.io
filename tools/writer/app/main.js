@@ -295,6 +295,7 @@ function renderWordCount() {
   const cjk = (text.match(/[㐀-鿿]/g) ?? []).length;
   const words = (text.replace(/[㐀-鿿]/g, ' ').match(/[A-Za-z0-9]+/g) ?? []).length;
   $('#word-count').textContent = `${(cjk + words).toLocaleString('zh-CN')} 字`;
+  $('#word-count').hidden = false;
 }
 
 async function openPost(slug) {
@@ -343,6 +344,7 @@ function showEmpty() {
   $('#empty-desk').hidden = false;
   $('[data-action="publish"]').disabled = true;
   $('[data-action="more"]').disabled = true;
+  $('#word-count').hidden = true;
   renderDocState();
   renderList();
 }
@@ -603,30 +605,24 @@ async function renameSlug() {
 
 /* ---------- 同步 ---------- */
 
+// 同步状态平时只用按钮图标上的小点表示，鼠标停上去才看文字，不常驻打扰。
 const SYNC_TEXT = {
-  idle: ['正在检查同步', '两台电脑靠 GitHub 互通'],
-  ready: ['已同步', '两台电脑看到的是同一份'],
-  pending: ['有改动还没同步', '点同步，另一台电脑才能看到'],
-  behind: ['另一台电脑有新内容', '点同步把它拉下来'],
-  running: ['正在同步', '推送到 GitHub，顺便拉取另一台的改动'],
-  error: ['同步没成功', ''],
+  idle: '正在检查同步状态',
+  ready: '已同步：两台电脑看到的是同一份',
+  pending: '有改动还没同步：点一下，另一台电脑才能看到',
+  behind: '另一台电脑有新内容：点一下把它拉下来',
+  running: '正在同步',
+  error: '同步没成功',
 };
 
 function renderSync(kind, detail) {
-  const box = $('#sync');
-  const [title, fallback] = SYNC_TEXT[kind];
-  if (box.dataset.kind !== kind) {
-    box.dataset.kind = kind;
-    const heading = $('#sync-title');
-    heading.textContent = title;
-    heading.classList.remove('changed');
-    void heading.offsetWidth;
-    heading.classList.add('changed');
-  }
-  $('#sync-title').classList.toggle('shimmer', kind === 'running');
-  $('#sync-detail').textContent = detail ?? fallback;
-  $('#sync-detail').title = detail ?? '';
-  $('[data-action="sync"]').toggleAttribute('data-busy', kind === 'running');
+  const button = $('[data-action="sync"]');
+  button.dataset.kind = kind;
+  button.title = detail ? `${SYNC_TEXT[kind]}：${detail}` : SYNC_TEXT[kind];
+  button.toggleAttribute('data-busy', kind === 'running');
+  const label = button.querySelector('.sync-label');
+  label.textContent = kind === 'running' ? '正在同步' : '同步';
+  label.classList.toggle('shimmer', kind === 'running');
 }
 
 async function refreshSync() {
@@ -777,7 +773,7 @@ editorArea.addEventListener('drop', () => {
   delete editorArea.dataset.dropping;
 });
 
-$('[data-action="sync"]').insertAdjacentHTML('afterbegin', icons.sync);
+$('.sync-glyph').innerHTML = icons.sync;
 $('[data-action="more"]').innerHTML = icons.more;
 
 // 列表里右键（或键盘的菜单键）打开这篇的操作菜单。

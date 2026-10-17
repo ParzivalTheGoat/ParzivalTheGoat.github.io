@@ -265,16 +265,23 @@ const PromptHints = Extension.create({
     const { hints } = this.options;
     return [new Plugin({
       props: {
-        decorations: ({ doc }) => {
+        decorations: ({ doc, selection }) => {
           const decorations = [];
           const isEmpty = (node) => node.type.name === 'paragraph' && node.content.size === 0;
+          const cursorAt = selection.empty && selection.$from.depth >= 1 ? selection.$from.before(1) : -1;
           doc.forEach((node, offset, index) => {
             if (!isEmpty(node)) return;
             const previous = index > 0 ? doc.child(index - 1) : null;
             let hint = '';
+            let className = 'is-empty';
             if (previous?.type.name === 'heading') hint = hints[previous.textContent] ?? '';
             else if (doc.childCount === 1) hint = '从这里开始写。输入 / 插入标题、列表、图片';
-            if (hint) decorations.push(Decoration.node(offset, offset + node.nodeSize, { class: 'is-empty', 'data-placeholder': hint }));
+            // 光标停在空行上时才提示怎么插东西，平时不占地方。
+            if (!hint && offset === cursorAt) {
+              hint = '输入 / 插入标题、列表、图片，截图可以直接粘贴';
+              className = 'is-empty cursor-hint';
+            }
+            if (hint) decorations.push(Decoration.node(offset, offset + node.nodeSize, { class: className, 'data-placeholder': hint }));
           });
           return DecorationSet.create(doc, decorations);
         },

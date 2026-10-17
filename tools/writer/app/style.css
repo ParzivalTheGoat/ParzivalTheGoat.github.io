@@ -471,81 +471,50 @@ button { cursor: pointer; }
 }
 
 .rail-foot {
-  align-items: center;
   display: flex;
-  gap: 0.5rem;
-  justify-content: space-between;
-  padding: 0.75rem 0.75rem 0.85rem 0.85rem;
+  padding: 0.5rem 0.6rem 0.75rem;
 }
 
-/* 同步：云朵图标右下角的小点表示状态，旁边一行说结果、一行说该做什么。 */
-.sync {
+/* 同步：平时是一个安静的按钮，有没同步的改动时图标右上角亮一个陶土色小点。 */
+.sync-button {
   align-items: center;
-  cursor: help;
-  display: flex;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-.sync-icon {
-  align-items: center;
-  background: var(--alpha-1);
+  background: transparent;
+  border: 0;
   border-radius: var(--radius);
-  color: var(--text-2);
+  color: var(--muted);
   display: inline-flex;
-  flex: none;
+  font-size: 0.8125rem;
+  gap: 0.5rem;
   height: 2rem;
-  justify-content: center;
-  position: relative;
-  width: 2rem;
+  padding: 0 0.6rem 0 0.5rem;
+  transition: background-color 150ms var(--ease-swift), color 150ms ease, transform 100ms ease;
 }
 
-.sync-icon .icon { height: 1.125rem; width: 1.125rem; }
+.sync-button:hover { background: var(--alpha-1); color: var(--text); }
+.sync-button:active { transform: scale(0.97); }
+.sync-button[data-busy] { cursor: progress; }
+.sync-button[data-busy] .icon { animation: spin 900ms linear infinite; }
 
-.sync-icon::after {
-  background: var(--faint);
+.sync-glyph { display: inline-flex; position: relative; }
+.sync-glyph .icon { height: 1rem; width: 1rem; }
+
+.sync-glyph::after {
+  background: var(--clay);
   border-radius: 50%;
-  bottom: 0.3rem;
   box-shadow: 0 0 0 2px var(--surface-0);
   content: '';
-  height: 0.4375rem;
+  height: 0.375rem;
   position: absolute;
-  right: 0.3rem;
-  transition: background-color 200ms ease;
-  width: 0.4375rem;
+  right: -0.15rem;
+  top: -0.1rem;
+  transform: scale(0);
+  transition: transform 260ms var(--ease-pop);
+  width: 0.375rem;
 }
 
-.sync[data-kind='ready'] .sync-icon::after { background: var(--live); }
-.sync:is([data-kind='pending'], [data-kind='behind']) .sync-icon::after { animation: clay-breathe 3s ease-in-out infinite; background: var(--clay); }
-.sync[data-kind='running'] .sync-icon::after { animation: dot-blink 1.2s ease-in-out infinite; background: var(--clay); }
-.sync[data-kind='error'] .sync-icon::after { background: var(--danger); }
-.sync[data-kind='error'] .sync-icon { color: var(--danger); }
-
-.sync-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  line-height: 1.35;
-  margin: 0;
-  min-width: 0;
-}
-
-.sync-text strong { color: var(--text); font-size: 0.8125rem; font-weight: 600; }
-.sync-text strong.changed { animation: status-rise 240ms var(--ease-rise) both; }
-
-.sync-text span {
-  color: var(--muted);
-  display: -webkit-box;
-  font-size: 0.71875rem;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-[data-action='sync'] { flex: none; }
-[data-action='sync'][data-busy] .icon { animation: spin 900ms linear infinite; }
-.sync[data-kind='ready'] + [data-action='sync'] { background: transparent; color: var(--muted); }
-.sync[data-kind='ready'] + [data-action='sync']:hover { background: var(--alpha-1); color: var(--text); }
+.sync-button:is([data-kind='pending'], [data-kind='behind']) .sync-glyph::after { transform: scale(1); }
+.sync-button[data-kind='error'] { color: var(--danger); }
+.sync-button[data-kind='error'] .sync-glyph::after { background: var(--danger); transform: scale(1); }
 
 /* ---------- 写字的地方 ---------- */
 
@@ -577,14 +546,18 @@ button { cursor: pointer; }
 }
 
 .doc-state .state-live { color: var(--live); }
+
+.topbar-info { align-items: center; display: flex; gap: 0.9rem; min-width: 0; }
+.word-count { color: var(--faint); font: 0.75rem/1 var(--mono); font-variant-numeric: tabular-nums; }
 .doc-state .state-draft { color: var(--text-2); }
 
 .topbar-actions { display: flex; gap: 0.5rem; }
 
+/* 正文栏放宽到约 56rem，一行四五十个汉字，宽屏上读起来不再挤。 */
 .sheet {
   margin: 0 auto;
-  max-width: 46rem;
-  padding: 3.5rem 2rem 0;
+  max-width: 60rem;
+  padding: 3.5rem 2rem 6rem;
 }
 
 .title-input,
@@ -804,6 +777,9 @@ button { cursor: pointer; }
   margin: 2.5em 0;
 }
 
+.prose .cursor-hint::before { opacity: 0; transition: opacity 200ms ease 300ms; }
+.ProseMirror-focused .cursor-hint::before { opacity: 1; }
+
 .prose .is-empty::before {
   color: var(--faint);
   content: attr(data-placeholder);
@@ -811,19 +787,6 @@ button { cursor: pointer; }
   height: 0;
   pointer-events: none;
 }
-
-.sheet-foot {
-  align-items: center;
-  box-shadow: inset 0 1px 0 var(--alpha-2);
-  color: var(--faint);
-  display: flex;
-  font-size: 0.75rem;
-  gap: 1.5rem;
-  margin-top: 4rem;
-  padding: 0.9rem 0 3rem;
-}
-
-.sheet-foot #word-count { color: var(--muted); font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
 kbd {
   background: var(--alpha-1);

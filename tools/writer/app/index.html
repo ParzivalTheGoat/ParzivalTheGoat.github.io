@@ -47,20 +47,19 @@
         </div>
         <nav class="post-list" id="post-list"></nav>
         <div class="rail-foot">
-          <div class="sync" id="sync" data-kind="idle" title="写作台靠 GitHub 在台式机和笔记本之间同步草稿和图片">
-            <span class="sync-icon"><span data-icon="cloud"></span></span>
-            <p class="sync-text">
-              <strong id="sync-title">正在检查同步</strong>
-              <span id="sync-detail">两台电脑靠 GitHub 互通</span>
-            </p>
-          </div>
-          <button class="text-button" type="button" data-action="sync">同步</button>
+          <button class="sync-button" type="button" data-action="sync" data-kind="idle">
+            <span class="sync-glyph"></span>
+            <span class="sync-label">同步</span>
+          </button>
         </div>
       </aside>
 
       <main class="desk" id="desk">
         <header class="topbar">
-          <p class="doc-state" id="doc-state"></p>
+          <div class="topbar-info">
+            <p class="doc-state" id="doc-state"></p>
+            <span class="word-count" id="word-count" hidden></span>
+          </div>
           <div class="topbar-actions">
             <button class="icon-button" type="button" data-action="more" aria-label="更多操作" title="更多操作" aria-haspopup="menu" disabled></button>
             <button class="ink-button" type="button" data-action="publish" disabled>发布</button>
@@ -96,10 +95,6 @@
 
           <div class="editor" id="editor"></div>
 
-          <footer class="sheet-foot">
-            <span id="word-count">0 字</span>
-            <span>输入 <kbd>/</kbd> 插入标题、列表、图片 · 截图直接粘贴或拖进来</span>
-          </footer>
         </article>
 
         <section class="empty-desk" id="empty-desk" hidden>
