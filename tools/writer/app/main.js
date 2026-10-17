@@ -6,12 +6,14 @@ import './style.css';
 import { api } from './api.js';
 import { icons } from './icons.js';
 import { createEditor, emptyPrompts, removeEmptyPrompts } from './editor.js';
+import { dateMenu, formatDate, projectMenu, selectMenu } from './pickers.js';
 import { PROMPT_HINTS } from '../lib/templates.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const fields = {
   title: $('#title'),
   description: $('#description'),
+  project: $('#project'),
   category: $('#category'),
   tags: $('#tags'),
   tagInput: $('#tag-input'),
@@ -25,7 +27,26 @@ const state = {
   dirty: false,
   saving: null,
   savedAt: null,
+  categories: [],
+  newProject: null, // 新建对话框里选中的项目
+  collapsed: new Set(readStored('writer:collapsed', [])),
 };
+
+function readStored(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function store(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // 本地存储不可用时只是不记住这些偏好。
+  }
+}
 
 let toastTimer;
 function toast(message, tone = 'ok') {
@@ -86,6 +107,34 @@ const editor = createEditor({
 
 /* ---------- 文章列表 ---------- */
 
+const OTHER = '未归入项目';
+
+// 已有的项目名，按最近一篇的日期排在前面。
+function projectNames() {
+  const latest = new Map();
+  for (const post of state.posts) {
+    if (post.project && !latest.has(post.project)) latest.set(post.project, post.publishedAt);
+  }
+  return [...latest.keys()];
+}
+
+function postLink(post, index) {
+  const link = document.createElement('a');
+  link.href = `#${post.slug}`;
+  link.className = 'post-link';
+  if (state.current?.slug === post.slug) link.setAttribute('aria-current', 'page');
+  const title = document.createElement('span');
+  title.textContent = post.title || '无标题';
+  title.className = post.title ? 'post-title' : 'post-title untitled';
+  const side = document.createElement(post.draft ? 'span' : 'time');
+  side.className = post.draft ? 'draft-mark' : '';
+  side.textContent = post.draft ? '草稿' : post.publishedAt.slice(5).replace('-', '/');
+  link.title = post.draft ? '草稿，还没发布' : `已发布于 ${post.publishedAt}`;
+  link.append(title, side);
+  link.style.setProperty('--i', index);
+  return link;
+}
+
 let listRendered = false;
 function renderList() {
   const list = $('#post-list');
@@ -93,31 +142,56 @@ function renderList() {
   // 只在第一次出现时逐行浮入，之后切换文章不再重播。
   list.classList.toggle('entering', !listRendered);
   let index = 0;
-  const groups = [
-    ['草稿', state.posts.filter((post) => post.draft)],
-    ['已发布', state.posts.filter((post) => !post.draft)],
-  ];
-  for (const [label, posts] of groups) {
-    if (posts.length === 0) continue;
-    const heading = document.createElement('h3');
-    heading.textContent = label;
-    heading.style.setProperty('--i', index++);
-    list.append(heading);
-    for (const post of posts) {
-      const link = document.createElement('a');
-      link.href = `#${post.slug}`;
-      link.className = 'post-link';
-      if (state.current?.slug === post.slug) link.setAttribute('aria-current', 'page');
-      const title = document.createElement('span');
-      title.textContent = post.title || '无标题';
-      title.className = post.title ? '' : 'untitled';
-      const date = document.createElement('time');
-      date.textContent = post.publishedAt.slice(5).replace('-', '/');
-      link.append(title, date);
-      link.style.setProperty('--i', index++);
-      list.append(link);
-    }
+  const groups = projectNames().map((name) => [name, state.posts.filter((post) => post.project === name)]);
+  const loose = state.posts.filter((post) => !post.project);
+  if (loose.length) groups.push([OTHER, loose]);
+
+  for (const [name, posts] of groups) {
+    const project = name === OTHER ? null : name;
+    const collapsed = state.collapsed.has(name) && !posts.some((post) => post.slug === state.current?.slug);
+    const group = document.createElement('section');
+    group.className = 'group';
+    if (collapsed) group.dataset.collapsed = '';
+
+    const head = document.createElement('div');
+    head.className = 'group-head';
+    head.style.setProperty('--i', index++);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'group-toggle';
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.innerHTML = icons.chevronDown;
+    const label = document.createElement('span');
+    label.className = project ? 'group-name' : 'group-name loose';
+    label.textContent = name;
+    const count = document.createElement('span');
+    count.className = 'group-count';
+    count.textContent = posts.length;
+    toggle.append(label, count);
+    toggle.addEventListener('click', () => {
+      state.collapsed.has(name) ? state.collapsed.delete(name) : state.collapsed.add(name);
+      store('writer:collapsed', [...state.collapsed]);
+      group.toggleAttribute('data-collapsed');
+      toggle.setAttribute('aria-expanded', String(!group.hasAttribute('data-collapsed')));
+    });
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'group-add';
+    add.title = project ? `在「${project}」里新建笔记` : '新建一篇不归入项目的笔记';
+    add.setAttribute('aria-label', add.title);
+    add.innerHTML = icons.plus;
+    add.addEventListener('click', () => chooseTemplate(project));
+    head.append(toggle, add);
+
+    const items = document.createElement('div');
+    items.className = 'group-items';
+    const inner = document.createElement('div');
+    for (const post of posts) inner.append(postLink(post, index++));
+    items.append(inner);
+    group.append(head, items);
+    list.append(group);
   }
+
   if (state.posts.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'rail-empty';
@@ -139,9 +213,27 @@ function readMeta() {
     ...state.current.meta,
     title: fields.title.value.trim(),
     description: fields.description.value.trim(),
-    category: fields.category.value,
-    publishedAt: fields.publishedAt.value,
+    project: state.current.meta.project || null,
   };
+}
+
+function setValue(button, text, placeholder) {
+  button.textContent = text || placeholder;
+  button.classList.toggle('placeholder', !text);
+  button.insertAdjacentHTML('beforeend', icons.chevronDown);
+}
+
+function renderProps() {
+  const { meta } = state.current;
+  setValue(fields.project, meta.project, '不归入项目');
+  setValue(fields.category, meta.category);
+  setValue(fields.publishedAt, formatDate(meta.publishedAt));
+}
+
+function changeMeta(patch) {
+  Object.assign(state.current.meta, patch);
+  renderProps();
+  markDirty();
 }
 
 function autoGrow(textarea) {
@@ -221,9 +313,8 @@ async function openPost(slug) {
   state.savedAt = null;
   fields.title.value = post.meta.title;
   fields.description.value = post.meta.description;
-  fields.category.value = post.meta.category;
-  fields.publishedAt.value = post.meta.publishedAt;
   fields.slug.value = post.slug;
+  renderProps();
   renderTags();
   editor.load(post.body);
   const sheet = $('#sheet');
@@ -278,9 +369,11 @@ async function flush() {
   state.saving = api.savePost(slug, payload)
     .then(() => {
       state.savedAt = new Date();
+      refreshSync();
       const entry = state.posts.find((post) => post.slug === slug);
-      if (entry && (entry.title !== payload.meta.title || entry.publishedAt !== payload.meta.publishedAt)) {
-        Object.assign(entry, { title: payload.meta.title, publishedAt: payload.meta.publishedAt });
+      const listed = { title: payload.meta.title, publishedAt: payload.meta.publishedAt, project: payload.meta.project || undefined };
+      if (entry && Object.entries(listed).some(([key, value]) => entry[key] !== value)) {
+        Object.assign(entry, listed);
         renderList();
       }
     })
@@ -298,13 +391,19 @@ async function flush() {
 
 /* ---------- 新建 ---------- */
 
-function chooseTemplate() {
+function renderNewProject() {
+  setValue($('#new-project'), state.newProject, '不归入项目');
+}
+
+function chooseTemplate(project = null) {
+  state.newProject = project;
+  renderNewProject();
   $('#new-dialog').showModal();
 }
 
 async function createPost(template) {
   await flush();
-  const post = await api.createPost(template);
+  const post = await api.createPost(template, state.newProject);
   await refreshList();
   location.hash = post.slug;
 }
@@ -439,23 +538,40 @@ async function renameSlug() {
 
 /* ---------- 同步 ---------- */
 
-function renderSyncLine(kind, message, { busy = false } = {}) {
-  const line = $('#sync-line');
-  const text = setStatusText(line, message) ?? line.querySelector('.status-text');
-  text.classList.toggle('shimmer', busy);
-  line.replaceChildren(statusDot(kind), text);
+const SYNC_TEXT = {
+  idle: ['正在检查同步', '两台电脑靠 GitHub 互通'],
+  ready: ['已同步', '两台电脑看到的是同一份'],
+  pending: ['有改动还没同步', '点同步，另一台电脑才能看到'],
+  behind: ['另一台电脑有新内容', '点同步把它拉下来'],
+  running: ['正在同步', '推送到 GitHub，顺便拉取另一台的改动'],
+  error: ['同步没成功', ''],
+};
+
+function renderSync(kind, detail) {
+  const box = $('#sync');
+  const [title, fallback] = SYNC_TEXT[kind];
+  if (box.dataset.kind !== kind) {
+    box.dataset.kind = kind;
+    const heading = $('#sync-title');
+    heading.textContent = title;
+    heading.classList.remove('changed');
+    void heading.offsetWidth;
+    heading.classList.add('changed');
+  }
+  $('#sync-title').classList.toggle('shimmer', kind === 'running');
+  $('#sync-detail').textContent = detail ?? fallback;
+  $('#sync-detail').title = detail ?? '';
+  $('[data-action="sync"]').toggleAttribute('data-busy', kind === 'running');
 }
 
 async function refreshSync() {
   try {
     const status = await api.syncStatus();
-    const parts = [];
-    if (status.changed) parts.push(`${status.changed} 处改动未同步`);
-    if (status.ahead) parts.push(`${status.ahead} 个提交未推送`);
-    if (status.behind) parts.push(`落后远程 ${status.behind} 个提交`);
-    renderSyncLine(parts.length ? 'pending' : 'ready', parts.length ? parts.join('，') : `已同步 · ${status.branch}`);
+    if (status.changed || status.ahead) renderSync('pending');
+    else if (status.behind) renderSync('behind');
+    else renderSync('ready');
   } catch (error) {
-    renderSyncLine('error', `无法读取 Git 状态：${error.message}`);
+    renderSync('error', error.message);
   }
 }
 
@@ -463,7 +579,7 @@ async function sync() {
   await flush();
   const button = $('[data-action="sync"]');
   button.disabled = true;
-  renderSyncLine('running', '正在同步', { busy: true });
+  renderSync('running');
   try {
     const result = await api.sync();
     toast(result.pushed ? '草稿已同步，另一台电脑打开写作台时会自动拉取' : '已提交到本地仓库');
@@ -498,8 +614,28 @@ for (const textarea of [fields.title, fields.description]) {
   });
 }
 
-fields.category.addEventListener('change', markDirty);
-fields.publishedAt.addEventListener('change', markDirty);
+fields.project.addEventListener('click', () => projectMenu(fields.project, {
+  projects: projectNames(),
+  value: state.current.meta.project,
+  onPick: (project) => changeMeta({ project }),
+}));
+fields.category.addEventListener('click', () => selectMenu(fields.category, {
+  options: state.categories,
+  value: state.current.meta.category,
+  onPick: (category) => changeMeta({ category }),
+}));
+fields.publishedAt.addEventListener('click', () => dateMenu(fields.publishedAt, {
+  value: state.current.meta.publishedAt,
+  onPick: (publishedAt) => changeMeta({ publishedAt }),
+}));
+$('#new-project').addEventListener('click', () => projectMenu($('#new-project'), {
+  projects: projectNames(),
+  value: state.newProject,
+  onPick: (project) => {
+    state.newProject = project;
+    renderNewProject();
+  },
+}));
 fields.slug.addEventListener('change', renameSlug);
 fields.slug.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') fields.slug.blur();
@@ -523,7 +659,7 @@ fields.tagInput.addEventListener('keydown', (event) => {
 
 document.addEventListener('click', (event) => {
   const action = event.target.closest('[data-action]')?.dataset.action;
-  if (action === 'new') chooseTemplate();
+  if (action === 'new') chooseTemplate(state.current?.meta.project ?? null);
   if (action === 'sync') sync();
   if (action === 'publish') openPublishDialog();
   if (action === 'unpublish') unpublish();
@@ -575,17 +711,13 @@ editorArea.addEventListener('drop', () => {
 });
 
 $('[data-action="sync"]').insertAdjacentHTML('afterbegin', icons.sync);
+for (const slot of document.querySelectorAll('[data-icon]')) slot.outerHTML = icons[slot.dataset.icon];
 for (const button of document.querySelectorAll('[data-action="new"]')) button.insertAdjacentHTML('afterbegin', icons.plus);
 
 /* ---------- 启动 ---------- */
 
 const meta = await api.meta();
-for (const category of meta.categories) {
-  const option = document.createElement('option');
-  option.value = category;
-  option.textContent = category;
-  fields.category.append(option);
-}
+state.categories = meta.categories;
 
 const templates = $('#templates');
 for (const template of meta.templates) {

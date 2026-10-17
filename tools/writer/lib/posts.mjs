@@ -27,6 +27,7 @@ export function parsePost(source) {
       publishedAt: toDateString(data.publishedAt) ?? today(),
       updatedAt: toDateString(data.updatedAt),
       category: data.category ?? '学习笔记',
+      project: data.project ? String(data.project) : undefined,
       tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
       draft: data.draft !== false,
     },
@@ -45,6 +46,9 @@ export function serializePost({ meta, body }) {
   if (meta.updatedAt) lines.push(`updatedAt: ${meta.updatedAt}`);
   lines.push(
     `category: ${JSON.stringify(meta.category)}`,
+  );
+  if (meta.project) lines.push(`project: ${JSON.stringify(meta.project)}`);
+  lines.push(
     `tags: ${JSON.stringify(meta.tags ?? [])}`,
     `draft: ${meta.draft !== false}`,
     '---',
@@ -72,7 +76,7 @@ export function createPostStore(directory) {
       const posts = await Promise.all(files.map(async (file) => {
         const slug = file.slice(0, -3);
         const { meta } = parsePost(await readFile(join(directory, file), 'utf8'));
-        return { slug, title: meta.title, draft: meta.draft, publishedAt: meta.publishedAt, category: meta.category };
+        return { slug, title: meta.title, draft: meta.draft, publishedAt: meta.publishedAt, category: meta.category, project: meta.project };
       }));
       return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt) || a.slug.localeCompare(b.slug));
     },

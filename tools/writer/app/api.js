@@ -14,7 +14,7 @@ const post = (slug) => `/api/posts/${encodeURIComponent(slug)}`;
 export const api = {
   meta: () => request('GET', '/api/meta'),
   listPosts: () => request('GET', '/api/posts'),
-  createPost: (template) => request('POST', '/api/posts', { template }),
+  createPost: (template, project) => request('POST', '/api/posts', { template, project }),
   getPost: (slug) => request('GET', post(slug)),
   savePost: (slug, data) => request('PUT', post(slug), data),
   deletePost: (slug) => request('DELETE', post(slug)),

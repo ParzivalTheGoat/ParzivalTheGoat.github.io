@@ -28,6 +28,15 @@ describe('写作台的文章读写', () => {
     expect(postSchema.safeParse(parsed.meta).success).toBe(true);
   });
 
+  it('项目字段能写进去、读回来，清空后不留在 frontmatter 里', () => {
+    const inProject = parsePost(serializePost({ ...post, meta: { ...post.meta, project: 'CDN 和 WAF' } }));
+    expect(inProject.meta.project).toBe('CDN 和 WAF');
+    expect(postSchema.safeParse(inProject.meta).success).toBe(true);
+    const cleared = serializePost({ ...post, meta: { ...post.meta, project: null } });
+    expect(cleared).not.toContain('project:');
+    expect(parsePost(cleared).meta.project).toBeUndefined();
+  });
+
   it('读得懂网站现有文章的格式', () => {
     const parsed = parsePost('---\ntitle: "旧文章"\ndescription: "摘要"\npublishedAt: 2026-09-06\ncategory: "Web 安全"\ntags: ["CDN"]\ndraft: false\n---\n\n正文\n');
     expect(parsed.meta).toMatchObject({ title: '旧文章', publishedAt: '2026-09-06', draft: false, tags: ['CDN'] });

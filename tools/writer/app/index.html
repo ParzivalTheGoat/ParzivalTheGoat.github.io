@@ -30,7 +30,13 @@
         </div>
         <nav class="post-list" id="post-list"></nav>
         <div class="rail-foot">
-          <p class="sync-line" id="sync-line">正在检查同步状态</p>
+          <div class="sync" id="sync" data-kind="idle" title="写作台靠 GitHub 在台式机和笔记本之间同步草稿和图片">
+            <span class="sync-icon"><span data-icon="cloud"></span></span>
+            <p class="sync-text">
+              <strong id="sync-title">正在检查同步</strong>
+              <span id="sync-detail">两台电脑靠 GitHub 互通</span>
+            </p>
+          </div>
           <button class="text-button" type="button" data-action="sync">同步</button>
         </div>
       </aside>
@@ -48,24 +54,26 @@
           <textarea class="title-input" id="title" rows="1" placeholder="标题" spellcheck="false"></textarea>
           <textarea class="summary-input" id="description" rows="1" placeholder="一句话说明这篇在讲什么"></textarea>
 
-          <dl class="meta-row">
-            <div>
-              <dt>分类</dt>
-              <dd><select id="category"></select></dd>
+          <dl class="props">
+            <div class="prop">
+              <dt><span data-icon="folder"></span>项目</dt>
+              <dd><button class="prop-value" type="button" id="project" aria-haspopup="listbox"></button></dd>
             </div>
-            <div>
-              <dt>标签</dt>
-              <dd class="tags" id="tags">
-                <input id="tag-input" placeholder="回车添加" />
-              </dd>
+            <div class="prop">
+              <dt><span data-icon="shapes"></span>分类</dt>
+              <dd><button class="prop-value" type="button" id="category" aria-haspopup="listbox"></button></dd>
             </div>
-            <div>
-              <dt>日期</dt>
-              <dd><input id="published-at" type="date" /></dd>
+            <div class="prop">
+              <dt><span data-icon="hash"></span>标签</dt>
+              <dd class="tags" id="tags"><input id="tag-input" placeholder="添加标签，回车确认" /></dd>
             </div>
-            <div>
-              <dt>网址</dt>
-              <dd class="slug">/posts/<input id="slug" spellcheck="false" />/</dd>
+            <div class="prop">
+              <dt><span data-icon="calendar"></span>日期</dt>
+              <dd><button class="prop-value" type="button" id="published-at" aria-haspopup="dialog"></button></dd>
+            </div>
+            <div class="prop">
+              <dt><span data-icon="link"></span>网址</dt>
+              <dd class="slug"><span>/posts/</span><input id="slug" spellcheck="false" /><span>/</span></dd>
             </div>
           </dl>
 
@@ -104,6 +112,10 @@
       <form method="dialog">
         <h2>写点什么？</h2>
         <p class="dialog-lede">模板只给几个提问，正文全部由你来写。不想要的提问直接删掉。</p>
+        <div class="dialog-field">
+          <span><span data-icon="folder"></span>放进项目</span>
+          <button class="prop-value" type="button" id="new-project" aria-haspopup="listbox"></button>
+        </div>
         <div class="templates" id="templates"></div>
         <div class="dialog-actions"><button class="text-button" value="cancel">取消</button></div>
       </form>

@@ -86,11 +86,11 @@ const routes = [
   ['GET', /^\/api\/posts$/, async () => posts.list()],
 
   ['POST', /^\/api\/posts$/, async (request) => {
-    const { template: templateId } = await readJson(request);
+    const { template: templateId, project } = await readJson(request);
     const template = TEMPLATES.find((item) => item.id === templateId) ?? TEMPLATES[0];
     const slug = posts.nextSlug();
     const post = {
-      meta: { title: '', description: '', publishedAt: today(), category: template.category, tags: [], draft: true },
+      meta: { title: '', description: '', publishedAt: today(), category: template.category, project: project?.trim() || undefined, tags: [], draft: true },
       body: template.prompts.map((prompt) => `## ${prompt.heading}\n`).join('\n'),
     };
     await posts.write(slug, post);
@@ -151,6 +151,7 @@ const routes = [
     const current = await posts.read(slug);
     const wasDraft = current.meta.draft;
     const next = { ...current.meta, ...meta, draft: false };
+    if (!next.project) delete next.project;
     if (!wasDraft && next.publishedAt !== today()) next.updatedAt = today();
     const problems = validate(next);
     if (problems.length) throw new HttpError(422, problems.join('；'));
