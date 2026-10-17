@@ -74,3 +74,22 @@ export function createRepoImageStore(publicDirectory) {
     },
   };
 }
+
+// 手绘画板导出的 SVG 原样存，不转 WebP（转了就不能再打开接着画）。
+// 只收画板自己导出的那种：没有脚本、事件属性和外部链接，图片本身也就不会在网站上执行任何东西。
+// 只查标签和样式里的东西，画里写的字（比如「one = 1」）不算。
+const UNSAFE_SVG = [
+  /<(?:script|foreignObject|iframe|embed|object)\b/i,
+  /<[^>]*\son[a-z]+\s*=/i,
+  /<[^>]*\s(?:xlink:)?(?:href|src)\s*=\s*["']?\s*(?!data:|#)[a-z][\w+.-]*:/i,
+  /url\(\s*["']?\s*(?!data:|#)[a-z][\w+.-]*:/i,
+];
+
+export function checkDrawing(input) {
+  const text = Buffer.isBuffer(input) ? input.toString('utf8') : String(input);
+  const start = text.replace(/^\uFEFF?\s*(<\?xml[^>]*>\s*)?/, '');
+  if (!start.startsWith('<svg')) throw new Error('这不是画板导出的 SVG');
+  if (UNSAFE_SVG.some((pattern) => pattern.test(text))) throw new Error('SVG 里有不允许的内容');
+  const buffer = Buffer.from(text, 'utf8');
+  return { name: `${createHash('sha256').update(buffer).digest('hex').slice(0, 12)}.svg`, buffer };
+}

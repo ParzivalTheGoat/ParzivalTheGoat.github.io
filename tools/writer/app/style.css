@@ -869,6 +869,10 @@ kbd {
   width: 16rem;
 }
 
+.bubble-image label { align-items: center; display: flex; gap: 0.5rem; }
+.bubble-image button:not([hidden]) { align-items: center; color: var(--clay-hover); display: inline-flex; gap: 0.35rem; padding: 0 0.55rem 0 0.45rem; }
+.bubble-image button .icon { height: 1rem; stroke-width: 1.6; width: 1rem; }
+
 .bubble[data-mode='image'] .bubble-text { display: none; }
 .bubble[data-mode='image'] .bubble-image { display: flex; }
 
@@ -1244,6 +1248,192 @@ kbd {
 .status-text { display: inline-block; }
 .status-text.changed { animation: status-rise 240ms var(--ease-rise) both; }
 
+/* ---------- 画板 ---------- */
+
+.draw-dialog {
+  background: var(--surface-2);
+  border: 0;
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-dialog);
+  color: var(--text);
+  display: none;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: calc(100vh - 2.5rem);
+  max-height: none;
+  max-width: none;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 150ms ease-in-out,
+    transform 150ms ease-in-out,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+  width: calc(100vw - 2.5rem);
+}
+
+.draw-dialog[open] {
+  display: grid;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 420ms var(--ease-overshoot),
+    overlay 420ms allow-discrete,
+    display 420ms allow-discrete;
+}
+
+/* 只平移不缩放：画布按打开那一刻的尺寸铺满，缩放会让它算小一圈。 */
+.draw-dialog.closing { opacity: 0; transform: translateY(10px); transition-duration: 150ms; }
+
+@starting-style {
+  .draw-dialog[open] { opacity: 0; transform: translateY(16px); }
+}
+
+.draw-dialog::backdrop {
+  background: rgb(20 20 19 / 0);
+  transition: background-color 200ms ease, overlay 200ms allow-discrete, display 200ms allow-discrete;
+}
+
+.draw-dialog[open]::backdrop { background: rgb(20 20 19 / 0.36); }
+
+@starting-style {
+  .draw-dialog[open]::backdrop { background: rgb(20 20 19 / 0); }
+}
+
+.draw-head {
+  align-items: center;
+  box-shadow: inset 0 -1px 0 var(--alpha-2);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.65rem 0.75rem 0.65rem 1.25rem;
+}
+
+.draw-title { align-items: baseline; display: flex; gap: 0.75rem; min-width: 0; }
+.draw-title strong { font: 600 1.125rem/1.3 var(--serif); }
+.draw-title span { color: var(--muted); font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.draw-actions { align-items: center; display: flex; flex: none; gap: 0.5rem; }
+.draw-actions [data-armed] { color: var(--danger); }
+
+.draw-stage { position: relative; }
+.draw-canvas { inset: 0; position: absolute; }
+
+.draw-toolbar {
+  align-items: center;
+  animation: popover-in 260ms 80ms var(--ease-overshoot) both;
+  background: var(--surface-2);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-popover);
+  display: flex;
+  left: 50%;
+  max-width: calc(100% - 1.5rem);
+  overflow-x: auto;
+  padding: 0.25rem;
+  position: absolute;
+  scrollbar-width: none;
+  top: 0.75rem;
+  translate: -50% 0;
+  z-index: 5;
+}
+
+.draw-group { align-items: center; display: flex; flex: none; gap: 0.1rem; }
+.draw-group + .draw-group { box-shadow: inset 1px 0 0 var(--alpha-2); margin-left: 0.3rem; padding-left: 0.3rem; }
+
+.draw-button {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  display: inline-flex;
+  flex: none;
+  height: 2rem;
+  justify-content: center;
+  transition: background-color 150ms var(--ease-swift), color 150ms ease, transform 450ms var(--spring);
+  width: 2rem;
+}
+
+.draw-button .icon { height: 1.125rem; stroke-width: 1.6; width: 1.125rem; }
+.draw-button:hover { background: var(--alpha-1); color: var(--text); }
+.draw-button:active { transform: scale(0.9); transition-duration: 100ms; }
+.draw-button[aria-pressed='true'] { background: var(--clay-subtle); color: var(--clay-hover); }
+.draw-button:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+
+/* 色块：一个实心圆点，选中时外面套一圈。 */
+.draw-swatch::before {
+  background: var(--swatch);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--alpha-3);
+  content: '';
+  height: 0.875rem;
+  transition: transform 300ms var(--spring);
+  width: 0.875rem;
+}
+
+.draw-swatch[aria-pressed='true'] { background: var(--alpha-1); }
+.draw-swatch[aria-pressed='true']::before { box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 3.5px var(--swatch); transform: scale(0.86); }
+
+.draw-fill[aria-pressed='true'] .icon { fill: var(--swatch); }
+
+.draw-width span {
+  background: currentColor;
+  border-radius: 99px;
+  height: calc(var(--w) * 1px);
+  width: 0.95rem;
+}
+
+/* Excalidraw 自己的界面全部收起来，只留画布、文字输入框和右键菜单。 */
+.draw-canvas .excalidraw {
+  --color-primary: var(--clay);
+  --color-primary-darker: var(--clay-hover);
+  --color-primary-darkest: var(--brand);
+  --color-primary-hover: var(--clay-hover);
+  --color-primary-light: var(--clay-subtle);
+  --color-selection: #d97757;
+  --color-surface-primary-container: var(--clay-subtle);
+  --default-border-color: var(--alpha-2);
+  --island-bg-color: var(--surface-2);
+  --popup-bg-color: var(--surface-2);
+  --popup-text-color: var(--text-2);
+  --shadow-island: var(--shadow-popover);
+  --border-radius-lg: var(--radius-panel);
+  --border-radius-md: var(--radius);
+  --ui-font: var(--sans);
+  font-family: var(--sans);
+}
+
+.draw-canvas .excalidraw .App-menu_top,
+.draw-canvas .excalidraw .App-menu__left,
+.draw-canvas .excalidraw .layer-ui__wrapper__top-right,
+.draw-canvas .excalidraw .layer-ui__wrapper__footer,
+.draw-canvas .excalidraw .layer-ui__wrapper__footer-left,
+.draw-canvas .excalidraw .layer-ui__wrapper__footer-right,
+.draw-canvas .excalidraw .layer-ui__wrapper__footer-center,
+.draw-canvas .excalidraw .welcome-screen-center,
+.draw-canvas .excalidraw .welcome-screen-decor,
+.draw-canvas .excalidraw .main-menu-trigger,
+.draw-canvas .excalidraw .help-icon,
+.draw-canvas .excalidraw .HintViewer,
+.draw-canvas .excalidraw .FixedSideContainer,
+.draw-canvas .excalidraw .scroll-back-to-content { display: none !important; }
+
+.draw-canvas .excalidraw .context-menu {
+  border: 0;
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-popover);
+  padding: 0.25rem;
+}
+
+.draw-canvas .excalidraw .context-menu-item {
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+.draw-canvas .excalidraw .context-menu-item:hover { background: var(--alpha-1); color: var(--text); }
+.draw-canvas .excalidraw .context-menu-item-separator { border-color: var(--alpha-2); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;
@@ -1253,6 +1443,7 @@ kbd {
 }
 
 @media (max-width: 52rem) {
+  .draw-title span { display: none; }
   .shell { grid-template-columns: 1fr; }
   .rail { box-shadow: inset 0 -1px 0 var(--alpha-2); height: auto; position: static; }
   .post-list { max-height: 14rem; }

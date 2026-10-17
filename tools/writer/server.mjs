@@ -2,11 +2,11 @@
 import { createServer as createHttpServer } from 'node:http';
 import { createReadStream, existsSync, realpathSync } from 'node:fs';
 import { spawn } from 'node:child_process';
-import { dirname, join, normalize, resolve, sep } from 'node:path';
+import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer as createViteServer } from 'vite';
 import { createGit } from './lib/git.mjs';
-import { compressImage, createRepoImageStore } from './lib/images.mjs';
+import { checkDrawing, compressImage, createRepoImageStore } from './lib/images.mjs';
 import { createPostStore, isValidSlug, today } from './lib/posts.mjs';
 import { TEMPLATES } from './lib/templates.mjs';
 
@@ -145,6 +145,18 @@ const routes = [
     return { url, before: input.length, after: compressed.buffer.length };
   }],
 
+  // 手绘画板：收导出的 SVG（里面嵌着画布数据，之后还能打开接着改）。
+  ['POST', /^\/api\/posts\/([^/]+)\/drawings$/, async (request, [slug]) => {
+    requirePost(slug);
+    let drawing;
+    try {
+      drawing = checkDrawing(await readBody(request, 15 * 1024 * 1024));
+    } catch (error) {
+      throw new HttpError(415, error.message);
+    }
+    return { url: await images.save(slug, drawing.name, drawing.buffer) };
+  }],
+
   ['POST', /^\/api\/posts\/([^/]+)\/publish$/, async (request, [slug]) => {
     requirePost(slug);
     const { meta, body } = await readJson(request);
@@ -182,11 +194,24 @@ const routes = [
   }],
 ];
 
+const CONTENT_TYPES = { '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.js': 'text/javascript', '.json': 'application/json' };
+
 async function serveImage(request, response) {
   const path = normalize(decodeURIComponent(new URL(request.url, 'http://local').pathname));
   const file = join(root, 'public', path);
   if (!file.startsWith(join(root, 'public', 'images') + sep) || !existsSync(file)) return false;
-  response.writeHead(200, { 'content-type': file.endsWith('.webp') ? 'image/webp' : 'application/octet-stream' });
+  response.writeHead(200, { 'content-type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream' });
+  createReadStream(file).pipe(response);
+  return true;
+}
+
+// 画板的字体（含中文手写体小赖）从本机的依赖里读，不用联网。
+const excalidrawAssets = join(realpathSync(join(root, 'node_modules/@excalidraw/excalidraw')), 'dist/prod');
+function serveExcalidrawAsset(request, response) {
+  const path = normalize(decodeURIComponent(new URL(request.url, 'http://local').pathname)).slice('/excalidraw/'.length);
+  const file = join(excalidrawAssets, path);
+  if (!file.startsWith(excalidrawAssets + sep) || !existsSync(file)) return false;
+  response.writeHead(200, { 'content-type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'max-age=86400' });
   createReadStream(file).pipe(response);
   return true;
 }
@@ -195,6 +220,7 @@ const server = createHttpServer(async (request, response) => {
   const { pathname } = new URL(request.url, 'http://local');
   try {
     if (pathname.startsWith('/images/') && (await serveImage(request, response))) return;
+    if (pathname.startsWith('/excalidraw/') && serveExcalidrawAsset(request, response)) return;
     if (pathname.startsWith('/api/')) {
       for (const [method, pattern, handler] of routes) {
         const match = pathname.match(pattern);

@@ -20,6 +20,7 @@ export const api = {
   deletePost: (slug) => request('DELETE', post(slug)),
   rename: (slug, to) => request('POST', `${post(slug)}/rename`, { to }),
   uploadImage: (slug, file) => request('POST', `${post(slug)}/images`, file, { 'content-type': file.type || 'application/octet-stream' }),
+  uploadDrawing: (slug, svg) => request('POST', `${post(slug)}/drawings`, svg, { 'content-type': 'image/svg+xml' }),
   publish: (slug, data) => request('POST', `${post(slug)}/publish`, data),
   unpublish: (slug) => request('POST', `${post(slug)}/unpublish`),
   syncStatus: () => request('GET', '/api/sync'),

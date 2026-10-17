@@ -14,12 +14,15 @@ const SLASH_ITEMS = [
   { id: 'quote', label: '引用', keys: 'quote yinyong', hint: '>', run: (chain) => chain.setBlockquote() },
   { id: 'code', label: '代码块', keys: 'code daima', hint: '```', run: (chain) => chain.setCodeBlock() },
   { id: 'image', label: '图片', keys: 'image tupian img pic', hint: '选文件', run: null },
+  { id: 'draw', label: '画图', keys: 'draw huatu flow liucheng chart tubiao', hint: '手绘', run: null },
   { id: 'hr', label: '分割线', keys: 'hr line fenge', hint: '---', run: (chain) => chain.setHorizontalRule() },
 ];
 
 const isImage = (file) => file.type.startsWith('image/');
+// 画板存的是 SVG，其他图片都转成了 WebP，所以看后缀就知道能不能接着画。
+const isDrawing = (src) => /\.svg(?:$|[?#])|^data:image\/svg\+xml/.test(src ?? '');
 
-export function createEditor({ element, bubble, slash, hints, onChange, uploadImage, onError }) {
+export function createEditor({ element, bubble, slash, hints, onChange, uploadImage, draw, onError }) {
   let loading = false;
   let slashState = null; // { from, to, items, index }
 
@@ -53,6 +56,21 @@ export function createEditor({ element, bubble, slash, hints, onChange, uploadIm
       else tr.delete(pos, pos + node.nodeSize);
     });
     editor.view.dispatch(tr);
+  }
+
+  // 新画一张：画完才插进文章；接着改：换掉原图的地址。
+  async function drawPicture(node) {
+    const from = node?.attrs.src;
+    const url = await draw(from).catch((error) => {
+      onError(`图没存上：${error.message}`);
+      return null;
+    });
+    if (!url) return editor.commands.focus();
+    if (from) return replaceImageSource(from, url);
+    editor.chain().focus().insertContent([
+      { type: 'image', attrs: { src: url, alt: '' } },
+      { type: 'paragraph' },
+    ]).run();
   }
 
   function pickImages() {
@@ -119,7 +137,8 @@ export function createEditor({ element, bubble, slash, hints, onChange, uploadIm
     if (item.run) item.run(chain).run();
     else {
       chain.run();
-      pickImages();
+      if (item.id === 'draw') drawPicture();
+      else pickImages();
     }
   }
 
@@ -196,12 +215,14 @@ export function createEditor({ element, bubble, slash, hints, onChange, uploadIm
   /* ---------- 浮动格式栏 ---------- */
 
   const altInput = bubble.querySelector('#alt-input');
+  const redrawButton = bubble.querySelector('[data-image="redraw"]');
 
   function syncBubble() {
     const { selection } = editor.state;
     const onImage = selection instanceof NodeSelection && selection.node.type.name === 'image';
     bubble.dataset.mode = onImage ? 'image' : 'text';
     if (onImage) altInput.value = selection.node.attrs.alt ?? '';
+    redrawButton.hidden = !(onImage && isDrawing(selection.node.attrs.src));
     for (const button of bubble.querySelectorAll('[data-mark]')) {
       button.setAttribute('aria-pressed', String(editor.isActive(button.dataset.mark)));
     }
@@ -216,6 +237,11 @@ export function createEditor({ element, bubble, slash, hints, onChange, uploadIm
   bubble.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;
+    if (button === redrawButton) {
+      const { selection } = editor.state;
+      if (selection instanceof NodeSelection) drawPicture(selection.node);
+      return;
+    }
     const chain = editor.chain().focus();
     const mark = button.dataset.mark;
     if (mark === 'bold') chain.toggleBold().run();

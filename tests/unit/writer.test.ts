@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import sharp from 'sharp';
 import { postSchema } from '../../src/content/schema';
-import { compressImage, createRepoImageStore } from '../../tools/writer/lib/images.mjs';
+import { checkDrawing, compressImage, createRepoImageStore } from '../../tools/writer/lib/images.mjs';
 import { isValidSlug, parsePost, serializePost } from '../../tools/writer/lib/posts.mjs';
 
 const post = {
@@ -74,5 +74,23 @@ describe('写作台的图片', () => {
     const removed = await store.prune('demo', `![](${kept})`);
     expect(removed).toEqual(['drop.webp']);
     expect(await store.list('demo')).toEqual(['keep.webp']);
+  });
+
+  it('画板的 SVG 原样收下，画里写的字不会被误判', () => {
+    const svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"><style>@font-face{src:url(data:font/woff2;base64,AA)}</style><text>one = 1，javascript: 也只是字</text></svg>';
+    const { name, buffer } = checkDrawing(Buffer.from(svg));
+    expect(name).toMatch(/^[0-9a-f]{12}\.svg$/);
+    expect(buffer.toString()).toBe(svg);
+  });
+
+  it('拒收带脚本、事件或外部链接的 SVG', () => {
+    for (const svg of [
+      '<html></html>',
+      '<svg><script>alert(1)</script></svg>',
+      '<svg><rect onclick="x()"/></svg>',
+      '<svg><a href="javascript:x()"><text>a</text></a></svg>',
+      '<svg><image href="https://example.com/a.png"/></svg>',
+      '<svg><style>@import url(https://example.com/a.css)</style></svg>',
+    ]) expect(() => checkDrawing(svg)).toThrow();
   });
 });

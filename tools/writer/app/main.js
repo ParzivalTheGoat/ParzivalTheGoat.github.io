@@ -102,6 +102,14 @@ const editor = createEditor({
     toast(`图片已压缩：${formatBytes(result.before)} → ${formatBytes(result.after)}`);
     return result.url;
   },
+  // 画板连同 Excalidraw 有几兆，第一次画图时才加载。
+  draw: async (from) => {
+    const { openDrawing } = await import('./drawing.js');
+    const result = await openDrawing({ from });
+    if (!result) return null;
+    const { url } = await api.uploadDrawing(state.current.slug, result.svg);
+    return url;
+  },
   onError: (message) => toast(message, 'error'),
 });
 
