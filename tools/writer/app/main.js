@@ -4,6 +4,7 @@ import '@fontsource-variable/jetbrains-mono/wght.css';
 import './style.css';
 
 import { api } from './api.js';
+import { icons } from './icons.js';
 import { createEditor, emptyPrompts, removeEmptyPrompts } from './editor.js';
 import { PROMPT_HINTS } from '../lib/templates.mjs';
 
@@ -27,13 +28,41 @@ const state = {
 };
 
 let toastTimer;
-function toast(message, tone = 'info') {
+function toast(message, tone = 'ok') {
   const element = $('#toast');
-  element.textContent = message;
+  const icon = { ok: icons.check, error: icons.alert, info: icons.info }[tone];
+  const text = document.createElement('span');
+  text.textContent = message;
+  element.innerHTML = icon;
+  element.append(text);
   element.dataset.tone = tone;
+  // 先收起再弹出，连续提示时每条都有入场动画。
+  element.classList.remove('visible');
+  void element.offsetWidth;
   element.classList.add('visible');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => element.classList.remove('visible'), tone === 'error' ? 8000 : 3500);
+}
+
+function statusDot(kind) {
+  const dot = document.createElement('span');
+  dot.className = 'status-dot';
+  dot.dataset.kind = kind;
+  return dot;
+}
+
+// 状态文字变了才播一次上浮动画，避免每次重绘都在跳。
+function setStatusText(element, text) {
+  if (element.dataset.text === text) {
+    const existing = element.querySelector('.status-text');
+    existing?.classList.remove('changed');
+    return existing;
+  }
+  element.dataset.text = text;
+  const span = document.createElement('span');
+  span.className = 'status-text changed';
+  span.textContent = text;
+  return span;
 }
 
 const formatBytes = (bytes) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`);
@@ -57,9 +86,13 @@ const editor = createEditor({
 
 /* ---------- 文章列表 ---------- */
 
+let listRendered = false;
 function renderList() {
   const list = $('#post-list');
   list.replaceChildren();
+  // 只在第一次出现时逐行浮入，之后切换文章不再重播。
+  list.classList.toggle('entering', !listRendered);
+  let index = 0;
   const groups = [
     ['草稿', state.posts.filter((post) => post.draft)],
     ['已发布', state.posts.filter((post) => !post.draft)],
@@ -68,6 +101,7 @@ function renderList() {
     if (posts.length === 0) continue;
     const heading = document.createElement('h3');
     heading.textContent = label;
+    heading.style.setProperty('--i', index++);
     list.append(heading);
     for (const post of posts) {
       const link = document.createElement('a');
@@ -80,6 +114,7 @@ function renderList() {
       const date = document.createElement('time');
       date.textContent = post.publishedAt.slice(5).replace('-', '/');
       link.append(title, date);
+      link.style.setProperty('--i', index++);
       list.append(link);
     }
   }
@@ -89,6 +124,7 @@ function renderList() {
     empty.textContent = '一篇都还没有';
     list.append(empty);
   }
+  if (state.posts.length) listRendered = true;
 }
 
 async function refreshList() {
@@ -133,19 +169,28 @@ function renderTags() {
 function renderDocState() {
   const element = $('#doc-state');
   if (!state.current) {
-    element.textContent = '';
+    element.replaceChildren();
+    delete element.dataset.text;
     return;
   }
-  const status = state.current.meta.draft ? '草稿' : '已发布';
+  const { draft } = state.current.meta;
   let saved = '';
-  if (state.saving) saved = '正在保存';
-  else if (state.dirty) saved = '有改动';
-  else if (state.savedAt) saved = `已保存 ${formatTime(state.savedAt)}`;
-  element.replaceChildren();
+  let kind = draft ? 'idle' : 'ready';
+  if (state.saving) {
+    saved = '正在保存';
+    kind = 'running';
+  } else if (state.dirty) {
+    saved = '有改动';
+    kind = 'pending';
+  } else if (state.savedAt) {
+    saved = `已保存 ${formatTime(state.savedAt)}`;
+  }
   const badge = document.createElement('span');
-  badge.className = state.current.meta.draft ? 'state-draft' : 'state-live';
-  badge.textContent = status;
-  element.append(badge, document.createTextNode(saved ? ` · ${saved}` : ''));
+  badge.className = draft ? 'state-draft' : 'state-live';
+  badge.textContent = draft ? '草稿' : '已发布';
+  const text = setStatusText(element, saved);
+  element.replaceChildren(statusDot(kind), badge);
+  if (text) element.append(text);
   $('[data-action="publish"]').disabled = false;
   $('[data-action="publish"]').textContent = state.current.meta.draft ? '发布' : '更新线上版本';
   $('[data-action="unpublish"]').hidden = state.current.meta.draft;
@@ -181,7 +226,11 @@ async function openPost(slug) {
   fields.slug.value = post.slug;
   renderTags();
   editor.load(post.body);
-  $('#sheet').hidden = false;
+  const sheet = $('#sheet');
+  sheet.hidden = false;
+  sheet.classList.remove('entering');
+  void sheet.offsetWidth;
+  sheet.classList.add('entering');
   $('#empty-desk').hidden = true;
   requestAnimationFrame(() => {
     autoGrow(fields.title);
@@ -322,7 +371,8 @@ async function publish() {
   const meta = readMeta();
   const button = $('[data-action="publish"]');
   button.disabled = true;
-  button.textContent = '正在发布';
+  button.dataset.busy = '';
+  button.innerHTML = '<span class="spinner"></span><span>正在发布</span>';
   try {
     const result = await api.publish(state.current.slug, { meta, body: editor.getMarkdown() });
     state.current.meta = result.meta;
@@ -332,6 +382,7 @@ async function publish() {
   } catch (error) {
     toast(error.message, 'error');
   } finally {
+    delete button.dataset.busy;
     renderDocState();
     await refreshList();
     refreshSync();
@@ -344,7 +395,7 @@ async function unpublish() {
   try {
     const result = await api.unpublish(state.current.slug);
     state.current.meta = result.meta;
-    toast('已撤回为草稿');
+    toast('已撤回为草稿', 'info');
   } catch (error) {
     toast(error.message, 'error');
   }
@@ -388,26 +439,31 @@ async function renameSlug() {
 
 /* ---------- 同步 ---------- */
 
-async function refreshSync() {
+function renderSyncLine(kind, message, { busy = false } = {}) {
   const line = $('#sync-line');
+  const text = setStatusText(line, message) ?? line.querySelector('.status-text');
+  text.classList.toggle('shimmer', busy);
+  line.replaceChildren(statusDot(kind), text);
+}
+
+async function refreshSync() {
   try {
     const status = await api.syncStatus();
     const parts = [];
     if (status.changed) parts.push(`${status.changed} 处改动未同步`);
     if (status.ahead) parts.push(`${status.ahead} 个提交未推送`);
     if (status.behind) parts.push(`落后远程 ${status.behind} 个提交`);
-    line.textContent = parts.length ? parts.join('，') : `已同步 · ${status.branch}`;
-    line.dataset.tone = parts.length ? 'pending' : 'ok';
+    renderSyncLine(parts.length ? 'pending' : 'ready', parts.length ? parts.join('，') : `已同步 · ${status.branch}`);
   } catch (error) {
-    line.textContent = `无法读取 Git 状态：${error.message}`;
-    line.dataset.tone = 'error';
+    renderSyncLine('error', `无法读取 Git 状态：${error.message}`);
   }
 }
 
 async function sync() {
   await flush();
-  const line = $('#sync-line');
-  line.textContent = '正在同步';
+  const button = $('[data-action="sync"]');
+  button.disabled = true;
+  renderSyncLine('running', '正在同步', { busy: true });
   try {
     const result = await api.sync();
     toast(result.pushed ? '草稿已同步，另一台电脑打开写作台时会自动拉取' : '已提交到本地仓库');
@@ -422,6 +478,7 @@ async function sync() {
   } catch (error) {
     toast(error.message, 'error');
   }
+  button.disabled = false;
   refreshSync();
 }
 
@@ -495,6 +552,30 @@ window.addEventListener('beforeunload', (event) => {
     event.preventDefault();
   }
 });
+
+const topbar = $('.topbar');
+window.addEventListener('scroll', () => topbar.toggleAttribute('data-scrolled', window.scrollY > 8), { passive: true });
+
+// 拖着图片经过正文时，正文区域亮起一圈陶土色的光。
+const editorArea = $('#editor');
+let dragDepth = 0;
+const hasImage = (event) => [...(event.dataTransfer?.items ?? [])].some((item) => item.kind === 'file' && item.type.startsWith('image/'));
+editorArea.addEventListener('dragenter', (event) => {
+  if (!hasImage(event)) return;
+  dragDepth += 1;
+  editorArea.dataset.dropping = '';
+});
+editorArea.addEventListener('dragleave', () => {
+  dragDepth = Math.max(0, dragDepth - 1);
+  if (dragDepth === 0) delete editorArea.dataset.dropping;
+});
+editorArea.addEventListener('drop', () => {
+  dragDepth = 0;
+  delete editorArea.dataset.dropping;
+});
+
+$('[data-action="sync"]').insertAdjacentHTML('afterbegin', icons.sync);
+for (const button of document.querySelectorAll('[data-action="new"]')) button.insertAdjacentHTML('afterbegin', icons.plus);
 
 /* ---------- 启动 ---------- */
 
