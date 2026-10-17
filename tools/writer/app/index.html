@@ -62,7 +62,7 @@
         <header class="topbar">
           <p class="doc-state" id="doc-state"></p>
           <div class="topbar-actions">
-            <button class="text-button" type="button" data-action="unpublish" hidden>撤回成草稿</button>
+            <button class="icon-button" type="button" data-action="more" aria-label="更多操作" title="更多操作" aria-haspopup="menu" disabled></button>
             <button class="ink-button" type="button" data-action="publish" disabled>发布</button>
           </div>
         </header>
@@ -99,7 +99,6 @@
           <footer class="sheet-foot">
             <span id="word-count">0 字</span>
             <span>输入 <kbd>/</kbd> 插入标题、列表、图片 · 截图直接粘贴或拖进来</span>
-            <button class="text-button quiet" type="button" data-action="delete">删除草稿</button>
           </footer>
         </article>
 
@@ -145,6 +144,17 @@
         <div class="dialog-actions">
           <button class="text-button" value="cancel">再想想</button>
           <button class="ink-button" value="confirm" id="publish-confirm">发布上线</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet-dialog confirm-dialog" id="confirm-dialog">
+      <form method="dialog">
+        <h2 id="confirm-title"></h2>
+        <p class="dialog-lede" id="confirm-body"></p>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel">取消</button>
+          <button class="ink-button" value="confirm" id="confirm-ok"></button>
         </div>
       </form>
     </dialog>

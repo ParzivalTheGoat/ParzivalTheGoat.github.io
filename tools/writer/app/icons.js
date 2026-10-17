@@ -15,5 +15,9 @@ export const icons = {
   chevronDown: svg('<path d="M6.5 8.5L10 12l3.5-3.5"/>'),
   chevronRight: svg('<path d="M8.5 6.5L12 10l-3.5 3.5"/>'),
   chevronLeft: svg('<path d="M11.5 6.5L8 10l3.5 3.5"/>'),
+  more: svg('<circle cx="5" cy="10" r=".6"/><circle cx="10" cy="10" r=".6"/><circle cx="15" cy="10" r=".6"/>'),
+  trash: svg('<path d="M4.5 6h11M8.2 6V4.6h3.6V6M6 6l.7 9.4h6.6L14 6M8.6 8.8v4M11.4 8.8v4"/>'),
+  undo: svg('<path d="M7.5 5.5L4.5 8.5l3 3"/><path d="M4.8 8.5h6.7a4 4 0 0 1 0 8H9"/>'),
+  open: svg('<path d="M6 4.5h5.5L15 8v7.5H6z"/><path d="M11.5 4.5V8H15"/>'),
   cloud: svg('<path d="M6 15.2h8.3a3.2 3.2 0 0 0 .4-6.4 4.8 4.8 0 0 0-9.2-.9A3.7 3.7 0 0 0 6 15.2z"/>'),
 };

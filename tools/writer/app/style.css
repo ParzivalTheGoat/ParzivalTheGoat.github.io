@@ -174,6 +174,28 @@ button { cursor: pointer; }
 .ink-button:disabled { cursor: not-allowed; opacity: 0.35; }
 
 .ink-button[data-busy] { cursor: progress; }
+.ink-button.danger { background: var(--danger); }
+.ink-button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 86%, #000); }
+
+/* 只有图标的方形按钮，比如顶栏的「更多」。 */
+.icon-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--muted);
+  display: inline-flex;
+  height: 2rem;
+  justify-content: center;
+  transition: background-color 150ms var(--ease-swift), color 150ms ease, transform 100ms ease;
+  width: 2rem;
+}
+
+.icon-button .icon { height: 1.125rem; stroke-width: 2.4; width: 1.125rem; }
+.icon-button:hover:not(:disabled),
+.icon-button[aria-expanded] { background: var(--alpha-1); color: var(--text); }
+.icon-button:active:not(:disabled) { transform: scale(0.92); }
+.icon-button:disabled { opacity: 0; pointer-events: none; }
 
 .spinner {
   animation: spin 0.8s linear infinite;
@@ -428,6 +450,8 @@ button { cursor: pointer; }
 
 .post-link:hover { background: var(--alpha-1); color: var(--text); }
 .post-link:active { background: var(--alpha-2); transform: scale(0.985); }
+
+.post-link[aria-expanded] { background: var(--alpha-1); box-shadow: inset 0 0 0 1px var(--alpha-2); color: var(--text); }
 
 .post-link[aria-current='page'] {
   background: var(--alpha-2);
@@ -800,7 +824,6 @@ button { cursor: pointer; }
 }
 
 .sheet-foot #word-count { color: var(--muted); font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.sheet-foot .text-button { margin-left: auto; }
 
 kbd {
   background: var(--alpha-1);
@@ -958,11 +981,21 @@ kbd {
 .picker-option span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .picker-option .icon { color: var(--faint); }
 .picker-option .icon:last-child:not(:first-child) { color: var(--clay); }
+.picker-option:hover:not(:disabled) { background: var(--alpha-1); color: var(--text); }
 .picker-option[data-active] { background: var(--alpha-2); color: var(--text); }
 .picker-option[aria-selected='true'] { color: var(--text); font-weight: 500; }
 .picker-option.create { color: var(--clay-hover); }
 .picker-option.create .icon { color: var(--clay); }
 .picker-option.clear { color: var(--muted); }
+.picker-option small { color: var(--faint); flex: none; font-size: 0.75rem; }
+.picker-option:disabled { color: var(--faint); cursor: not-allowed; }
+.picker-option:disabled .icon { color: var(--faint); }
+.picker-option.danger:not(:disabled) { color: var(--danger); }
+.picker-option.danger:not(:disabled) .icon { color: var(--danger); }
+.picker-option.danger[data-active]:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.picker-actions { min-width: 13rem; }
+.picker-actions .picker-option .icon:first-child { color: var(--muted); }
+.picker-rule { border: 0; border-top: 1px solid var(--alpha-2); margin: 0.3rem 0.4rem; }
 
 .picker-project { display: flex; flex-direction: column; gap: 0.3rem; overflow: hidden; width: 17rem; }
 .picker-project [role='listbox'] { max-height: 14rem; overflow-y: auto; }
@@ -1137,6 +1170,10 @@ kbd {
 
 .template li { counter-increment: prompt; line-height: 1.95; }
 .template li::before { color: var(--clay); content: counter(prompt) '　'; font-family: var(--mono); font-size: 0.6875rem; }
+
+.confirm-dialog { max-width: min(26rem, calc(100vw - 2rem)); padding: 1.75rem 1.75rem 1.25rem; }
+.confirm-dialog h2 { font-size: 1.25rem; }
+.confirm-dialog .dialog-lede { line-height: 1.7; margin-bottom: 0; }
 
 .dialog-actions {
   display: flex;

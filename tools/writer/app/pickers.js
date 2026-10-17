@@ -1,5 +1,5 @@
-// 自己画的下拉菜单、项目选择和日期选择，替换浏览器默认的 select 和 date 控件。
-// 三者共用一个浮层：挂在触发按钮下方，点外面或按 Esc 收起。
+// 自己画的下拉菜单、项目选择、日期选择和操作菜单，替换浏览器默认的控件。
+// 都用同一个浮层：挂在触发按钮下方（右键菜单挂在鼠标处），点外面或按 Esc 收起。
 import { icons } from './icons.js';
 
 let active = null; // { panel, anchor, onKey }
@@ -16,20 +16,28 @@ function closePopover({ restoreFocus = true } = {}) {
   if (restoreFocus) anchor.focus({ preventScroll: true });
 }
 
-function openPopover(anchor, panel, onKey) {
-  const reopen = active?.anchor === anchor;
+function openPopover(anchor, panel, onKey, { point, align = 'start' } = {}) {
+  const reopen = !point && active?.anchor === anchor;
   closePopover({ restoreFocus: false });
   if (reopen) return false;
   panel.classList.add('picker');
   // 打开的对话框外面的东西点不到，所以对话框里的触发按钮要把浮层放进对话框。
   const dialog = anchor.closest('dialog');
   (dialog ?? document.body).append(panel);
-  const rect = anchor.getBoundingClientRect();
+  const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y } : anchor.getBoundingClientRect();
   const width = panel.offsetWidth;
-  const left = Math.max(12, Math.min(rect.left, document.documentElement.clientWidth - width - 12));
+  const height = panel.offsetHeight;
+  const viewport = document.documentElement;
+  const wanted = align === 'end' ? rect.right - width : rect.left;
+  const left = Math.max(12, Math.min(wanted, viewport.clientWidth - width - 12));
+  // 下面放不下就翻到上面。
+  const below = rect.bottom + (point ? 2 : 6);
+  const top = below + height > viewport.clientHeight - 12 && rect.top - height - 6 > 12 ? rect.top - height - (point ? 2 : 6) : below;
+  if (top < below) panel.style.transformOrigin = align === 'end' ? '100% 100%' : '0 100%';
+  else if (align === 'end') panel.style.transformOrigin = '100% 0';
   const origin = dialog ? dialog.getBoundingClientRect() : { left: -window.scrollX, top: -window.scrollY };
   panel.style.left = `${left - origin.left}px`;
-  panel.style.top = `${rect.bottom + 6 - origin.top + (dialog?.scrollTop ?? 0)}px`;
+  panel.style.top = `${top - origin.top + (dialog?.scrollTop ?? 0)}px`;
   anchor.setAttribute('aria-expanded', 'true');
   const handler = (event) => {
     if (event.key === 'Escape') {
@@ -53,7 +61,7 @@ window.addEventListener('resize', () => closePopover({ restoreFocus: false }));
 // 选项列表的上下键、回车，菜单和项目选择共用。
 function listNavigation(list, onPick) {
   let index = 0;
-  const items = () => [...list.querySelectorAll('[role="option"]')];
+  const items = () => [...list.querySelectorAll('[role="option"]:not(:disabled)')];
   const highlight = (next) => {
     const all = items();
     if (!all.length) return;
@@ -90,6 +98,36 @@ function option({ label, selected, className = '', icon = '' }) {
   button.append(text);
   if (selected) button.insertAdjacentHTML('beforeend', icons.check);
   return button;
+}
+
+/* ---------- 操作菜单：更多按钮和右键菜单共用 ---------- */
+
+// items: [{ label, icon, danger, disabled, hint, onSelect }]，null 表示分隔线。
+export function actionMenu(anchor, items, { point, align } = {}) {
+  const panel = document.createElement('div');
+  panel.setAttribute('role', 'menu');
+  panel.className = 'picker-actions';
+  for (const item of items) {
+    if (!item) {
+      panel.append(Object.assign(document.createElement('hr'), { className: 'picker-rule' }));
+      continue;
+    }
+    const button = option({ label: item.label, icon: item.icon ? icons[item.icon] : '', className: item.danger ? 'danger' : '' });
+    button.setAttribute('role', 'option');
+    if (item.disabled) button.disabled = true;
+    if (item.hint) {
+      const hint = document.createElement('small');
+      hint.textContent = item.hint;
+      button.append(hint);
+    }
+    button.addEventListener('click', () => {
+      closePopover({ restoreFocus: !point });
+      item.onSelect();
+    });
+    panel.append(button);
+  }
+  const nav = listNavigation(panel, (button) => button.click());
+  if (openPopover(anchor, panel, nav.onKey, { point, align })) nav.reset();
 }
 
 /* ---------- 下拉菜单 ---------- */

@@ -6,7 +6,7 @@ import './style.css';
 import { api } from './api.js';
 import { icons } from './icons.js';
 import { createEditor, emptyPrompts, removeEmptyPrompts } from './editor.js';
-import { dateMenu, formatDate, projectMenu, selectMenu } from './pickers.js';
+import { actionMenu, dateMenu, formatDate, projectMenu, selectMenu } from './pickers.js';
 import { PROMPT_HINTS } from '../lib/templates.mjs';
 
 const $ = (selector) => document.querySelector(selector);
@@ -285,8 +285,7 @@ function renderDocState() {
   if (text) element.append(text);
   $('[data-action="publish"]').disabled = false;
   $('[data-action="publish"]').textContent = state.current.meta.draft ? '发布' : '更新线上版本';
-  $('[data-action="unpublish"]').hidden = state.current.meta.draft;
-  $('[data-action="delete"]').hidden = !state.current.meta.draft;
+  $('[data-action="more"]').disabled = false;
   fields.slug.disabled = !state.current.meta.draft;
   fields.slug.title = state.current.meta.draft ? '网址发布后就固定了，现在可以改成英文短词' : '已发布的文章不能改网址';
 }
@@ -343,7 +342,7 @@ function showEmpty() {
   $('#sheet').hidden = true;
   $('#empty-desk').hidden = false;
   $('[data-action="publish"]').disabled = true;
-  $('[data-action="unpublish"]').hidden = true;
+  $('[data-action="more"]').disabled = true;
   renderDocState();
   renderList();
 }
@@ -488,34 +487,100 @@ async function publish() {
   }
 }
 
-async function unpublish() {
-  if (!window.confirm('撤回后网站上会删掉这篇文章，文件保留为草稿。确定撤回吗？')) return;
-  await flush();
+/* ---------- 撤回、删除、移动：更多菜单和列表右键菜单共用 ---------- */
+
+// 页面内的确认框，替代浏览器自带的 confirm。
+function confirmAction({ title, body, confirm, danger = false }) {
+  const dialog = $('#confirm-dialog');
+  $('#confirm-title').textContent = title;
+  $('#confirm-body').textContent = body;
+  const ok = $('#confirm-ok');
+  ok.textContent = confirm;
+  ok.classList.toggle('danger', danger);
+  dialog.returnValue = '';
+  dialog.showModal();
+  ok.focus();
+  return new Promise((resolve) => dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true }));
+}
+
+const postTitle = (slug) => state.posts.find((post) => post.slug === slug)?.title || '无标题';
+
+async function unpublish(slug = state.current.slug) {
+  const ok = await confirmAction({
+    title: '撤回成草稿？',
+    body: `《${postTitle(slug)}》会从网站上撤下来，文件和图片都留着，之后可以再发布。`,
+    confirm: '撤回',
+  });
+  if (!ok) return;
+  if (state.current?.slug === slug) await flush();
   try {
-    const result = await api.unpublish(state.current.slug);
-    state.current.meta = result.meta;
+    const result = await api.unpublish(slug);
+    if (state.current?.slug === slug) state.current.meta = result.meta;
     toast('已撤回为草稿', 'info');
   } catch (error) {
     toast(error.message, 'error');
   }
-  renderDocState();
+  if (state.current) renderDocState();
   await refreshList();
   refreshSync();
 }
 
-async function deleteDraft() {
-  if (!window.confirm('删除这篇草稿和它的图片？这一步不能撤销。')) return;
-  clearTimeout(saveTimer);
-  state.dirty = false;
+async function deleteDraft(slug = state.current.slug) {
+  const ok = await confirmAction({
+    title: '删除这篇草稿？',
+    body: `《${postTitle(slug)}》和它的图片会一起删掉，这一步不能撤销。`,
+    confirm: '删除',
+    danger: true,
+  });
+  if (!ok) return;
+  const isCurrent = state.current?.slug === slug;
+  if (isCurrent) {
+    clearTimeout(saveTimer);
+    state.dirty = false;
+  }
   try {
-    await api.deletePost(state.current.slug);
-    state.current = null;
+    await api.deletePost(slug);
+    toast('草稿已删除', 'info');
+    if (isCurrent) {
+      state.current = null;
+      history.replaceState(null, '', location.pathname);
+      showEmpty();
+    }
     await refreshList();
-    location.hash = '';
-    showEmpty();
+    refreshSync();
   } catch (error) {
     toast(error.message, 'error');
   }
+}
+
+async function moveToProject(slug, project) {
+  if (state.current?.slug === slug) return changeMeta({ project });
+  try {
+    const post = await api.getPost(slug);
+    await api.savePost(slug, { meta: { ...post.meta, project }, body: post.body });
+    await refreshList();
+    refreshSync();
+  } catch (error) {
+    toast(error.message, 'error');
+  }
+}
+
+function postActions(slug, anchor) {
+  const post = state.posts.find((item) => item.slug === slug);
+  if (!post) return [];
+  return [
+    state.current?.slug === slug ? null : { label: '打开', icon: 'open', onSelect: () => (location.hash = slug) },
+    {
+      label: '移到项目…',
+      icon: 'folder',
+      onSelect: () => projectMenu(anchor, { projects: projectNames(), value: post.project, onPick: (project) => moveToProject(slug, project) }),
+    },
+    null,
+    post.draft
+      ? { label: '删除草稿', icon: 'trash', danger: true, onSelect: () => deleteDraft(slug) }
+      : { label: '撤回成草稿', icon: 'undo', onSelect: () => unpublish(slug) },
+    post.draft ? null : { label: '删除', icon: 'trash', danger: true, disabled: true, hint: '先撤回成草稿', onSelect: () => {} },
+  ].filter((item, index, list) => item !== null || (index > 0 && list[index - 1] !== null && index < list.length - 1));
 }
 
 async function renameSlug() {
@@ -662,8 +727,10 @@ document.addEventListener('click', (event) => {
   if (action === 'new') chooseTemplate(state.current?.meta.project ?? null);
   if (action === 'sync') sync();
   if (action === 'publish') openPublishDialog();
-  if (action === 'unpublish') unpublish();
-  if (action === 'delete') deleteDraft();
+  if (action === 'more' && state.current) {
+    const button = event.target.closest('[data-action]');
+    actionMenu(button, postActions(state.current.slug, button), { align: 'end' });
+  }
 });
 
 $('#publish-dialog').addEventListener('close', () => {
@@ -711,6 +778,17 @@ editorArea.addEventListener('drop', () => {
 });
 
 $('[data-action="sync"]').insertAdjacentHTML('afterbegin', icons.sync);
+$('[data-action="more"]').innerHTML = icons.more;
+
+// 列表里右键（或键盘的菜单键）打开这篇的操作菜单。
+$('#post-list').addEventListener('contextmenu', (event) => {
+  const link = event.target.closest('.post-link');
+  if (!link) return;
+  event.preventDefault();
+  const slug = decodeURIComponent(link.hash.slice(1));
+  const point = event.clientX || event.clientY ? { x: event.clientX, y: event.clientY } : undefined;
+  actionMenu(link, postActions(slug, link), { point });
+});
 for (const slot of document.querySelectorAll('[data-icon]')) slot.outerHTML = icons[slot.dataset.icon];
 for (const button of document.querySelectorAll('[data-action="new"]')) button.insertAdjacentHTML('afterbegin', icons.plus);
 
