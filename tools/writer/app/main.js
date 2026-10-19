@@ -104,7 +104,16 @@ const editor = createEditor({
   },
   // 画板连同 Excalidraw 有几兆，第一次画图时才加载。
   draw: async (from) => {
-    const { openDrawing } = await import('./drawing.js');
+    // 第一次加载要一会儿，慢的时候先说一声，免得以为没点上。
+    const slow = setTimeout(() => toast('正在打开画板…', 'info'), 300);
+    let openDrawing;
+    try {
+      ({ openDrawing } = await import('./drawing.js'));
+    } catch (error) {
+      throw new Error(`画板没加载出来：${error.message}`);
+    } finally {
+      clearTimeout(slow);
+    }
     const result = await openDrawing({ from });
     if (!result) return null;
     try {

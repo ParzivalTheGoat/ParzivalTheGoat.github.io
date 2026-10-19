@@ -245,7 +245,8 @@ export async function openDrawing({ from } = {}) {
       currentItemStrokeWidth: 2,
       currentItemRoughness: 1,
       currentItemRoundness: 'sharp', // 方框默认直角
-      currentItemFontFamily: FONT_FAMILY.Excalifont,
+      // 文字用工整的无衬线体（字形随图嵌进 SVG），中文跟系统黑体走，不用 Excalidraw 的手写体。
+      currentItemFontFamily: FONT_FAMILY['Liberation Sans'],
       currentItemEndArrowhead: 'arrow',
     },
   };

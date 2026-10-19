@@ -205,7 +205,7 @@ async function serveImage(request, response) {
   return true;
 }
 
-// 画板的字体（含中文手写体小赖）从本机的依赖里读，不用联网。
+// 画板的字体从本机的依赖里读，不用联网。
 const excalidrawAssets = join(realpathSync(join(root, 'node_modules/@excalidraw/excalidraw')), 'dist/prod');
 function serveExcalidrawAsset(request, response) {
   const path = normalize(decodeURIComponent(new URL(request.url, 'http://local').pathname)).slice('/excalidraw/'.length);
