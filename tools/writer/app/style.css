@@ -53,7 +53,8 @@
   --spring: linear(0, 0.2459, 0.6526, 0.9468, 1.0764, 1.0915, 1.0585, 1.0219, 0.9993, 0.9914, 0.9921, 0.9957, 0.9988, 1.0004, 1);
 
   --serif: 'Newsreader Variable', 'Noto Serif SC', 'Songti SC', serif;
-  --sans: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  /* 界面和正文也用网站那套衬线字体，不用系统黑体：写的时候看到的就是上线后的样子。 */
+  --sans: var(--serif);
   --mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 }
 
