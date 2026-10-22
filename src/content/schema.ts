@@ -19,6 +19,8 @@ export const postSchema = z.object({
   publishedAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   category: z.enum(CATEGORIES),
+  // 同一个学习项目下的几篇笔记，比如“CDN 和 WAF”。不填就是单篇。
+  project: z.string().trim().min(1).optional(),
   tags: tagsSchema,
   draft: z.boolean(),
 }).superRefine((post, context) => {
