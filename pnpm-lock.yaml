@@ -70,7 +70,7 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       sharp:
-        specifier: ^0.34.5
+        specifier: 0.34.5
         version: 0.34.5
       typescript:
         specifier: ^6.0.3
