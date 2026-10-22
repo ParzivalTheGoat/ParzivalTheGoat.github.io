@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>写作台</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3Cmask id='c'%3E%3Crect x='-6' y='-17' width='12' height='18' fill='white'/%3E%3Cpath d='M0-2.4V-7.6' stroke='black' stroke-width='1.2' stroke-linecap='round'/%3E%3Ccircle cy='-9.2' r='1.5'/%3E%3C/mask%3E%3C/defs%3E%3Cpath d='M9.5 20.5H21' stroke='%23d97757' stroke-width='2' stroke-linecap='round'/%3E%3Cpath transform='translate(6.2 20.2) rotate(38)' mask='url(%23c)' d='M0 0L-4.4-8.6-3.2-15.5H3.2L4.4-8.6Z' fill='%23d97757' stroke='%23d97757' stroke-width='.6' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail" aria-label="文章">
+        <div class="rail-head">
+          <span class="wordmark">
+            <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <mask id="nib-cut">
+                  <rect x="-6" y="-17" width="12" height="18" fill="#fff" />
+                  <path d="M0-2.4V-7.6" stroke="#000" stroke-width="1.2" stroke-linecap="round" />
+                  <circle cy="-9.2" r="1.5" fill="#000" />
+                </mask>
+              </defs>
+              <path class="logo-line" d="M9.5 20.5H21" />
+              <g transform="translate(6.2 20.2) rotate(38)">
+                <path class="logo-nib" mask="url(#nib-cut)" d="M0 0L-4.4-8.6-3.2-15.5H3.2L4.4-8.6Z" />
+              </g>
+            </svg>
+            <svg class="lettering" viewBox="4 4 300 96" role="img" aria-label="写作台">
+              <path d="M18 24L18 13L84 13L84 23" />
+              <path d="M34 34L80 34" />
+              <path d="M34 34L34 53L80 53L80 86Q80 92 72 91" />
+              <path class="ink" d="M12 71L68 71" />
+              <path d="M146 8Q138 32 118 45" />
+              <path d="M138 31L138 93" />
+              <path d="M166 8Q162 26 152 40" />
+              <path d="M160 24L196 24" />
+              <path d="M172 24L172 93" />
+              <path d="M172 46L194 46" />
+              <path d="M172 66L194 66" />
+              <path d="M268 9L230 44L288 41" />
+              <path d="M278 27L296 46" />
+              <path d="M234 56L234 94" />
+              <path d="M234 56L292 56L292 94" />
+              <path d="M234 90L292 90" />
+            </svg>
+          </span>
+          <button class="text-button" type="button" data-action="new">新建</button>
+        </div>
+        <nav class="post-list" id="post-list"></nav>
+        <div class="rail-foot">
+          <button class="sync-button" type="button" data-action="sync" data-kind="idle">
+            <span class="sync-glyph"></span>
+            <span class="sync-label">同步</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="desk" id="desk">
+        <header class="topbar">
+          <div class="topbar-info">
+            <p class="doc-state" id="doc-state"></p>
+            <span class="word-count" id="word-count" hidden></span>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" type="button" data-action="more" aria-label="更多操作" title="更多操作" aria-haspopup="menu" disabled></button>
+            <button class="ink-button" type="button" data-action="publish" disabled>发布</button>
+          </div>
+        </header>
+
+        <article class="sheet" id="sheet" hidden>
+          <textarea class="title-input" id="title" rows="1" placeholder="标题" spellcheck="false"></textarea>
+          <textarea class="summary-input" id="description" rows="1" placeholder="一句话说明这篇在讲什么"></textarea>
+
+          <dl class="props">
+            <div class="prop">
+              <dt><span data-icon="folder"></span>项目</dt>
+              <dd><button class="prop-value" type="button" id="project" aria-haspopup="listbox"></button></dd>
+            </div>
+            <div class="prop">
+              <dt><span data-icon="shapes"></span>分类</dt>
+              <dd><button class="prop-value" type="button" id="category" aria-haspopup="listbox"></button></dd>
+            </div>
+            <div class="prop">
+              <dt><span data-icon="hash"></span>标签</dt>
+              <dd class="tags" id="tags"><input id="tag-input" placeholder="添加标签，回车确认" /></dd>
+            </div>
+            <div class="prop">
+              <dt><span data-icon="calendar"></span>日期</dt>
+              <dd><button class="prop-value" type="button" id="published-at" aria-haspopup="dialog"></button></dd>
+            </div>
+            <div class="prop">
+              <dt><span data-icon="link"></span>网址</dt>
+              <dd class="slug"><span>/posts/</span><input id="slug" spellcheck="false" /><span>/</span></dd>
+            </div>
+          </dl>
+
+          <div class="editor" id="editor"></div>
+
+        </article>
+
+        <section class="empty-desk" id="empty-desk" hidden>
+          <p>还没有打开任何文章。</p>
+          <button class="text-button" type="button" data-action="new">写一篇</button>
+        </section>
+      </main>
+    </div>
+
+    <div class="bubble" id="bubble" role="toolbar" aria-label="格式">
+      <div class="bubble-text">
+        <button type="button" data-mark="bold" title="加粗 Ctrl+B"><b>粗</b></button>
+        <button type="button" data-mark="italic" title="斜体 Ctrl+I"><i>斜</i></button>
+        <button type="button" data-mark="code" title="行内代码">代码</button>
+        <button type="button" data-mark="link" title="链接">链接</button>
+        <span class="bubble-rule"></span>
+        <button type="button" data-block="h2" title="小标题">标题</button>
+        <button type="button" data-block="quote" title="引用">引用</button>
+      </div>
+      <div class="bubble-image">
+        <label>图片说明 <input id="alt-input" placeholder="这张图在说明什么" /></label>
+        <button type="button" data-image="redraw" hidden><span data-icon="draw"></span>接着画</button>
+      </div>
+    </div>
+
+    <div class="slash" id="slash" role="listbox" hidden></div>
+
+    <dialog class="sheet-dialog" id="new-dialog">
+      <form method="dialog">
+        <h2>写点什么？</h2>
+        <p class="dialog-lede">模板只给几个提问，正文全部由你来写。不想要的提问直接删掉。</p>
+        <div class="dialog-field">
+          <span><span data-icon="folder"></span>放进项目</span>
+          <button class="prop-value" type="button" id="new-project" aria-haspopup="listbox"></button>
+        </div>
+        <div class="templates" id="templates"></div>
+        <div class="dialog-actions"><button class="text-button" value="cancel">取消</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet-dialog" id="publish-dialog">
+      <form method="dialog">
+        <h2 id="publish-title">发布</h2>
+        <div id="publish-body"></div>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel">再想想</button>
+          <button class="ink-button" value="confirm" id="publish-confirm">发布上线</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet-dialog confirm-dialog" id="confirm-dialog">
+      <form method="dialog">
+        <h2 id="confirm-title"></h2>
+        <p class="dialog-lede" id="confirm-body"></p>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel">取消</button>
+          <button class="ink-button" value="confirm" id="confirm-ok"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <p class="toast" id="toast" role="status" aria-live="polite"></p>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
