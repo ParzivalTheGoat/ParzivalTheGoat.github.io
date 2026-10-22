@@ -9,16 +9,17 @@ interface Props {
   description?: string;
   noindex?: boolean;
   canonicalPath?: string;
+  masthead?: boolean;
 }
 
-const props: Props = Astro.props;
+const { masthead = false, ...props }: Props = Astro.props;
 ---
 
 <!doctype html>
 <html lang="zh-CN">
   <head><BaseHead {...props} /></head>
   <body>
-    <SiteHeader />
+    <SiteHeader masthead={masthead} />
     <main class="shell" data-pagefind-body><slot /></main>
     <SiteFooter />
   </body>

@@ -1,51 +1,37 @@
 ---
+import { formatMonth } from '../lib/posts';
 import Brand from './Brand.astro';
-import Icon from './Icon.astro';
 import ThemeToggle from './ThemeToggle.astro';
 
+interface Props {
+  masthead?: boolean;
+}
+
+const { masthead = false } = Astro.props;
 const links = [
-  { href: '/posts/', label: '文章', icon: 'posts' },
-  { href: '/categories/', label: '分类', icon: 'categories' },
-  { href: '/tags/', label: '标签', icon: 'tags' },
-  { href: '/archive/', label: '归档', icon: 'archive' },
-  { href: '/search/', label: '搜索', icon: 'search' },
-  { href: '/about/', label: '关于', icon: 'about' },
+  { href: '/', label: '首页', match: (path: string) => path === '/' },
+  { href: '/posts/', label: '学习', match: (path: string) => ['/posts/', '/categories/', '/tags/', '/archive/'].some((prefix) => path.startsWith(prefix)) },
+  { href: '/about/', label: '关于', match: (path: string) => path.startsWith('/about/') },
+  { href: '/search/', label: '搜索', match: (path: string) => path.startsWith('/search/') },
 ];
 const path = Astro.url.pathname;
 ---
 
-<header class="site-header">
-  <div class="shell header-inner">
-    <Brand />
-    <nav class="primary-nav" id="primary-nav" aria-label="主导航">
+<header class:list={['site-header', 'shell', { compact: !masthead }]}>
+  {masthead && (
+    <div class="masthead">
+      <h1 class="mast-name">Parzival<span class="dot">.</span></h1>
+      <p class="mast-date">{formatMonth(new Date())}</p>
+      <a class="mast-jump" href="#side-b">B 面 · 放一张 ↓</a>
+    </div>
+  )}
+  <div class="header-bar">
+    {!masthead && <Brand />}
+    <nav class="primary-nav" aria-label="主导航">
       <ul>
-        {links.map((link) => <li><a class:list={['nav-button', { 'nav-about': link.icon === 'about' }]} href={link.href} aria-current={path.startsWith(link.href) ? 'page' : undefined}><Icon name={link.icon} /><span>{link.label}</span></a></li>)}
+        {links.map((link) => <li><a href={link.href} aria-current={link.match(path) ? 'page' : undefined}>{link.label}</a></li>)}
       </ul>
     </nav>
     <ThemeToggle />
-    <button class="menu-toggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="primary-nav"><span></span><span></span></button>
   </div>
 </header>
-
-<script>
-  const header = document.querySelector<HTMLElement>('.site-header');
-  const menu = document.querySelector<HTMLButtonElement>('.menu-toggle');
-  const mobile = matchMedia('(max-width: 60rem)');
-  const setOpen = (open: boolean) => {
-    header?.classList.toggle('menu-open', open);
-    menu?.setAttribute('aria-expanded', String(open));
-    menu?.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
-  };
-  header?.classList.add('nav-enhanced');
-  menu?.addEventListener('click', () => setOpen(menu.getAttribute('aria-expanded') !== 'true'));
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') {
-      setOpen(false);
-      menu.focus();
-    }
-  });
-  document.addEventListener('click', (event) => {
-    if (event.target instanceof Node && !header?.contains(event.target)) setOpen(false);
-  });
-  mobile.addEventListener('change', () => setOpen(false));
-</script>

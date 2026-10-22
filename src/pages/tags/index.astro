@@ -1,4 +1,5 @@
 ---
+import StudyHead from '../../components/StudyHead.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPublishedPosts, getTagHref, getTaxonomyCounts } from '../../lib/posts';
 
@@ -6,15 +7,14 @@ const tags = getTaxonomyCounts(await getPublishedPosts()).tags;
 ---
 
 <BaseLayout title="标签">
-  <h1>标签</h1>
+  <StudyHead title="标签" />
   {tags.length === 0 ? (
     <p class="empty-state">暂无文章</p>
   ) : (
     <ul class="taxonomy-list">
       {tags.map(({ name, count }) => (
         <li data-tag-row>
-          <a href={getTagHref(name)}>{name}</a>
-          <span class="mono muted">({count})</span>
+          <a href={getTagHref(name)}>#{name}<span class="count">{count} 篇</span></a>
         </li>
       ))}
     </ul>

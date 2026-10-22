@@ -1,7 +1,7 @@
 ---
 import PostMeta from '../components/PostMeta.astro';
 import TableOfContents from '../components/TableOfContents.astro';
-import { getPostHref, type BlogPost } from '../lib/posts';
+import { getPostHref, getPublishedPosts, getReadingMinutes, getTrackNumbers, LONG_POST_MINUTES, type BlogPost } from '../lib/posts';
 import '../styles/prose.css';
 import BaseLayout from './BaseLayout.astro';
 
@@ -20,28 +20,40 @@ interface Props {
 
 const { post, headings, newer, older } = Astro.props;
 const isPreview = post.data.draft || post.data.publishedAt > new Date();
+const numbers = getTrackNumbers(await getPublishedPosts());
+const trackLabel = (entry: BlogPost) => {
+  const number = numbers.get(entry.id);
+  return number ? `A${number}` : '';
+};
+const isLong = getReadingMinutes(post.body ?? '') >= LONG_POST_MINUTES;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.description} noindex={isPreview}>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-  <header class="post-header">
-    {isPreview && <p class="draft-notice" role="note">本地草稿预览 · 尚未发布</p>}
-    <h1>{post.data.title}</h1>
-    <p class="post-description">{post.data.description}</p>
-    <PostMeta post={post} />
-  </header>
-  <div class="post-content-layout">
-    <TableOfContents headings={headings} />
-    <article class="prose" data-pagefind-body>
-      <slot />
-    </article>
+  <div class="post-sheet">
+    <div class="post-aside">
+      {trackLabel(post) && <span class="sheet-mark" aria-hidden="true">{trackLabel(post)}</span>}
+      <PostMeta post={post} />
+      <div class="np" data-now-playing><a href="/#side-b">放一张 →</a></div>
+      <TableOfContents headings={headings} />
+    </div>
+    <div class="post-main">
+      <header class="post-header">
+        {isPreview && <p class="draft-notice" role="note">本地草稿预览 · 尚未发布</p>}
+        <h1>{post.data.title}</h1>
+        <p class="post-description">{post.data.description}</p>
+      </header>
+      <article class:list={['prose', { 'has-dropcap': isLong }]} data-pagefind-body>
+        <slot />
+      </article>
+      {(newer || older) && (
+        <nav class="post-navigation" aria-label="文章导航">
+          {older && <a href={getPostHref(older.id)}><span class="nav-label">较早 {trackLabel(older)}</span><span>{older.data.title}</span></a>}
+          {newer && <a href={getPostHref(newer.id)}><span class="nav-label">较新 {trackLabel(newer)}</span><span>{newer.data.title}</span></a>}
+        </nav>
+      )}
+    </div>
   </div>
-  {(newer || older) && (
-    <nav class="post-navigation" aria-label="文章导航">
-      {newer && <a href={getPostHref(newer.id)}>较新文章：{newer.data.title}</a>}
-      {older && <a href={getPostHref(older.id)}>较早文章：{older.data.title}</a>}
-    </nav>
-  )}
 </BaseLayout>
 
 <script>

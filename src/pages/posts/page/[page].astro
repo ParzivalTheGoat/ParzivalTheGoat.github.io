@@ -1,9 +1,10 @@
 ---
 import Pagination from '../../../components/Pagination.astro';
 import PostList from '../../../components/PostList.astro';
+import StudyHead from '../../../components/StudyHead.astro';
 import { SITE } from '../../../config/site';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getPublishedPosts, paginatePosts } from '../../../lib/posts';
+import { getPublishedPosts, getTrackNumbers, paginatePosts } from '../../../lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -18,8 +19,8 @@ const posts = await getPublishedPosts();
 const pagination = paginatePosts(posts, Number(Astro.params.page), SITE.postsPerPage);
 ---
 
-<BaseLayout title={`文章 · 第 ${pagination.currentPage} 页`}>
-  <h1>文章</h1>
-  <PostList posts={pagination.items} />
+<BaseLayout title={`学习 · 第 ${pagination.currentPage} 页`}>
+  <StudyHead title="学习" count={posts.length} />
+  <PostList posts={pagination.items} numbers={getTrackNumbers(posts)} />
   <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
 </BaseLayout>

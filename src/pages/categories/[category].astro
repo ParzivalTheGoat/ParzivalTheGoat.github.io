@@ -1,18 +1,21 @@
 ---
-import { CATEGORIES } from '../../content/schema';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedPosts } from '../../lib/posts';
 import PostList from '../../components/PostList.astro';
+import StudyHead from '../../components/StudyHead.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts, getTaxonomyCounts, getTrackNumbers } from '../../lib/posts';
 
-export function getStaticPaths() {
-  return CATEGORIES.map((category) => ({ params: { category } }));
+// Only categories that already hold a post get a page.
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return getTaxonomyCounts(posts).categories.map(({ name }) => ({ params: { category: name } }));
 }
 
 const category = Astro.params.category ?? '';
-const posts = (await getPublishedPosts()).filter((post) => post.data.category === category);
+const all = await getPublishedPosts();
+const posts = all.filter((post) => post.data.category === category);
 ---
 
 <BaseLayout title={category}>
-  <h1>{category}</h1>
-  <PostList posts={posts} />
+  <StudyHead title={category} count={posts.length} />
+  <PostList posts={posts} numbers={getTrackNumbers(all)} />
 </BaseLayout>
