@@ -1,16 +1,17 @@
 ---
 import Pagination from '../../components/Pagination.astro';
 import PostList from '../../components/PostList.astro';
+import StudyHead from '../../components/StudyHead.astro';
 import { SITE } from '../../config/site';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedPosts, paginatePosts } from '../../lib/posts';
+import { getPublishedPosts, getTrackNumbers, paginatePosts } from '../../lib/posts';
 
 const posts = await getPublishedPosts();
 const pagination = paginatePosts(posts, 1, SITE.postsPerPage);
 ---
 
-<BaseLayout title="文章">
-  <h1>文章</h1>
-  <PostList posts={pagination.items} />
+<BaseLayout title="学习">
+  <StudyHead title="学习" count={posts.length} />
+  <PostList posts={pagination.items} numbers={getTrackNumbers(posts)} />
   <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />
 </BaseLayout>

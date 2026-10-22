@@ -11,8 +11,9 @@ const postPageHref = (page: number) => page === 1 ? '/posts/' : `/posts/page/${p
 ---
 
 {totalPages > 1 && (
-  <nav class="pagination mono" aria-label="分页">
-    {currentPage > 1 ? <a href={postPageHref(previousPage)}>上一页</a> : <span />}
-    {currentPage < totalPages && <a href={postPageHref(nextPage)}>下一页</a>}
+  <nav class="pagination" aria-label="分页">
+    {currentPage > 1 ? <a href={postPageHref(previousPage)}>← 上一页</a> : <span />}
+    <span class="page-count">第 {currentPage} / {totalPages} 页</span>
+    {currentPage < totalPages ? <a class="next" href={postPageHref(nextPage)}>下一页 →</a> : <span />}
   </nav>
 )}

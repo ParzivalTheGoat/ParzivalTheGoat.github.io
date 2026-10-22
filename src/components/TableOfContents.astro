@@ -13,7 +13,7 @@ const { headings } = Astro.props;
 ---
 
 {headings.length > 0 && (
-  <aside class="toc-region">
+  <div class="toc-region">
     <details open>
       <summary class="mono">目录</summary>
       <nav aria-label="文章目录">
@@ -26,7 +26,7 @@ const { headings } = Astro.props;
         </ol>
       </nav>
     </details>
-  </aside>
+  </div>
 )}
 
 <script>

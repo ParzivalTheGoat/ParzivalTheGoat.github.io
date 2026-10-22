@@ -1,30 +1,35 @@
 import { expect, test } from '@playwright/test';
 
-test('mobile menu supports Escape, navigation, and the smallest viewport', async ({ page }) => {
+test('all four navigation links fit the smallest viewport without a menu', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto('/');
   const navigation = page.getByRole('navigation', { name: '主导航' });
-  const menu = page.locator('.menu-toggle');
-  await expect(navigation).toBeHidden();
-  await menu.click();
-  await expect(navigation).toBeVisible();
+  for (const label of ['首页', '学习', '关于', '搜索']) {
+    await expect(navigation.getByRole('link', { name: label, exact: true })).toBeVisible();
+  }
+  await expect(navigation.getByRole('link', { name: '首页', exact: true })).toHaveAttribute('aria-current', 'page');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-  await page.keyboard.press('Escape');
-  await expect(navigation).toBeHidden();
-  await expect(menu).toBeFocused();
-  await menu.click();
-  await navigation.getByRole('link', { name: '分类', exact: true }).click();
-  await expect(page).toHaveURL(/\/categories\/$/);
-  await expect(menu).toHaveAttribute('aria-expanded', 'false');
-  await menu.click();
-  await expect(navigation.getByRole('link', { name: '分类', exact: true })).toHaveAttribute('aria-current', 'page');
-});
-
-test('nested category highlights its parent navigation button', async ({ page }) => {
-  await page.goto('/categories/AI/');
-  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '分类', exact: true }))
+  await navigation.getByRole('link', { name: '学习', exact: true }).click();
+  await expect(page).toHaveURL(/\/posts\/$/);
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '学习', exact: true }))
     .toHaveAttribute('aria-current', 'page');
 });
+
+test('mobile home links straight to side B', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('link', { name: 'B 面 · 放一张 ↓' }).click();
+  await expect(page).toHaveURL(/#side-b$/);
+  await expect(page.locator('#side-b')).toBeInViewport();
+});
+
+for (const path of ['/categories/', '/tags/', '/archive/']) {
+  test(`${path} highlights the study navigation link`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '学习', exact: true }))
+      .toHaveAttribute('aria-current', 'page');
+  });
+}
 
 test('home has factual metadata and no slogan', async ({ page }) => {
   await page.goto('/');
@@ -34,7 +39,7 @@ test('home has factual metadata and no slogan', async ({ page }) => {
     'content',
     'ParzivalTheGoat 的个人技术博客',
   );
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText("Parzival's Lab");
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Parzival.');
 });
 
 const themeCases = [
@@ -74,12 +79,12 @@ test('theme follows system changes when no stored preference exists', async ({ p
   await expect(root).not.toHaveAttribute('data-theme');
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => root.evaluate((element) => getComputedStyle(element).backgroundColor))
-    .toBe('rgb(25, 24, 21)');
+    .toBe('rgb(19, 33, 27)');
 
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await expect.poll(() => root.evaluate((element) => getComputedStyle(element).backgroundColor))
-    .toBe('rgb(242, 238, 229)');
+    .toBe('rgb(242, 233, 211)');
 });
 
 test('manual theme override ignores later system changes', async ({ page }) => {
@@ -97,7 +102,7 @@ test('manual theme override ignores later system changes', async ({ page }) => {
   await expect(root).toHaveAttribute('data-theme', 'dark');
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => root.evaluate((element) => getComputedStyle(element).backgroundColor))
-    .toBe('rgb(25, 24, 21)');
+    .toBe('rgb(19, 33, 27)');
 });
 
 test('system theme and pressed state survive storage read failure', async ({ page }) => {

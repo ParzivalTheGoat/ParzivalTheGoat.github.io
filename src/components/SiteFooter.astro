@@ -1,14 +1,15 @@
 ---
 import { SITE } from '../config/site';
-import Icon from './Icon.astro';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="shell footer-inner mono">
-    <span>© {year} {SITE.author}</span>
-    <a class="ui-button" href={SITE.github} rel="me">GitHub<Icon name="external" /></a>
-    <a class="ui-button" href="/rss.xml"><Icon name="rss" />RSS</a>
+  <div class="shell">
+    <div class="footer-inner">
+      <span>© {year} {SITE.author}</span>
+      <a href={SITE.github} rel="me">GitHub</a>
+      <a href="/rss.xml">RSS</a>
+    </div>
   </div>
 </footer>

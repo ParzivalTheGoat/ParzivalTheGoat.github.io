@@ -1,5 +1,5 @@
 ---
-import { getReadingMinutes, getTagHref, type BlogPost } from '../lib/posts';
+import { formatDotDate, getReadingMinutes, getTagHref, type BlogPost } from '../lib/posts';
 
 interface Props {
   post: BlogPost;
@@ -9,22 +9,18 @@ interface Props {
 const { post, includeTags = true } = Astro.props;
 const linkTags = !post.data.draft && post.data.publishedAt <= new Date();
 const publishedAt = post.data.publishedAt.toISOString();
-const publishedLabel = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.publishedAt);
 const updatedAt = post.data.updatedAt?.toISOString();
-const updatedLabel = post.data.updatedAt && new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(post.data.updatedAt);
 ---
 
-<div class="post-meta mono muted">
-  <time datetime={publishedAt}>{publishedLabel}</time>
-  {updatedAt && updatedLabel && <time datetime={updatedAt}>更新于 {updatedLabel}</time>}
-  <span aria-hidden="true">·</span>
-  <a href={`/categories/${post.data.category}/`}>{post.data.category}</a>
-  {includeTags && post.data.tags.map((tag) => (
-    <>
-      <span aria-hidden="true">·</span>
-      {linkTags ? <a href={getTagHref(tag)}>#{tag}</a> : <span>#{tag}</span>}
-    </>
-  ))}
-  <span aria-hidden="true">·</span>
-  <span>{getReadingMinutes(post.body ?? '')} 分钟</span>
-</div>
+<ul class="post-facts">
+  <li>{linkTags ? <a href={`/categories/${post.data.category}/`}>{post.data.category}</a> : post.data.category}</li>
+  {post.data.project && <li>{post.data.project}</li>}
+  <li><time datetime={publishedAt}>{formatDotDate(post.data.publishedAt)}</time></li>
+  {updatedAt && post.data.updatedAt && <li>更新于 <time datetime={updatedAt}>{formatDotDate(post.data.updatedAt)}</time></li>}
+  <li>阅读约 {getReadingMinutes(post.body ?? '')} 分钟</li>
+  {includeTags && post.data.tags.length > 0 && (
+    <li class="post-tags">
+      {post.data.tags.map((tag) => linkTags ? <a href={getTagHref(tag)}>#{tag}</a> : <span>#{tag}</span>)}
+    </li>
+  )}
+</ul>

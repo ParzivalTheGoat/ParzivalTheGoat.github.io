@@ -65,3 +65,28 @@ export function groupPostsByMonth(posts: readonly BlogPost[]): PostMonthGroup[] 
 export function getReadingMinutes(body: string): number {
   return Math.max(1, Math.ceil(readingTime(body).minutes));
 }
+
+// Posts are numbered like tracks on a record: the oldest one is A1.
+export function getTrackNumbers(posts: readonly BlogPost[]): Map<string, number> {
+  const oldestFirst = sortPosts(posts).reverse();
+  return new Map(oldestFirst.map((post, index) => [post.id, index + 1]));
+}
+
+export function formatTrackLength(minutes: number): string {
+  return `${minutes}:00`;
+}
+
+// Until posts carry an explicit type, anything that takes six minutes or more counts as a long post.
+export const LONG_POST_MINUTES = 6;
+
+export function formatMonth(date: Date): string {
+  const parts = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'numeric', timeZone: 'Asia/Shanghai' }).formatToParts(date);
+  const part = (type: string) => parts.find((item) => item.type === type)?.value;
+  return `${part('year')} 年 ${part('month')} 月`;
+}
+
+export function formatDotDate(date: Date): string {
+  const parts = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' }).formatToParts(date);
+  const part = (type: string) => parts.find((item) => item.type === type)?.value;
+  return `${part('year')}.${part('month')}.${part('day')}`;
+}

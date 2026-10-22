@@ -1,0 +1,22 @@
+---
+interface Props {
+  title: string;
+  count?: number;
+}
+
+const { title, count } = Astro.props;
+const path = Astro.url.pathname;
+const links = [
+  { href: '/categories/', label: '分类' },
+  { href: '/tags/', label: '标签' },
+  { href: '/archive/', label: '归档' },
+];
+---
+
+<header class="page-head">
+  <h1><span class="side-letter" aria-hidden="true">A</span>{title}</h1>
+  {count !== undefined && <span class="count">{count} 篇</span>}
+  <nav class="sub-links" aria-label="学习记录">
+    {links.map((link) => <a href={link.href} aria-current={path.startsWith(link.href) ? 'page' : undefined}>{link.label}</a>)}
+  </nav>
+</header>

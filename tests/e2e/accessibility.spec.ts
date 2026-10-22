@@ -21,7 +21,7 @@ async function expectVisibleFocusOutline(locator: Locator) {
 
   expect(outline.style).not.toBe('none');
   expect(outline.width).toBeGreaterThanOrEqual(2);
-  expect(outline.color).toBe('rgb(169, 78, 50)');
+  expect(outline.color).toBe('rgb(158, 42, 43)');
 }
 
 function parseTransitionDurations(value: string): number[] {
@@ -44,16 +44,12 @@ test('keyboard focus is visible on main navigation', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/');
 
-  const siteName = page.getByRole('link', { name: "Parzival's Lab" });
-  await page.keyboard.press('Tab');
-  await expect(siteName).toBeFocused();
-
   const navigation = page.getByRole('navigation', { name: '主导航' });
-  for (const label of ['文章', '分类', '标签', '归档', '搜索', '关于']) {
+  for (const label of ['首页', '学习', '关于', '搜索']) {
     await page.keyboard.press('Tab');
     const link = navigation.getByRole('link', { name: label, exact: true });
     await expect(link).toBeFocused();
-    if (label === '文章') await expectVisibleFocusOutline(link);
+    if (label === '首页') await expectVisibleFocusOutline(link);
   }
 
   await page.keyboard.press('Tab');

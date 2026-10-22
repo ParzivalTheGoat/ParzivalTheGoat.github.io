@@ -1,8 +1,18 @@
 ---
+import { SITE } from '../config/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="关于">
-  <h1>ParzivalTheGoat</h1>
-  <p><a class="ui-button" href="https://github.com/ParzivalTheGoat" rel="me">GitHub</a></p>
+  <div class="sheet">
+    <div class="sheet-aside">
+      <ul>
+        <li><a href={SITE.github} rel="me">GitHub</a></li>
+        <li><a href="/rss.xml">RSS</a></li>
+      </ul>
+    </div>
+    <div class="sheet-body">
+      <h1>ParzivalTheGoat</h1>
+    </div>
+  </div>
 </BaseLayout>

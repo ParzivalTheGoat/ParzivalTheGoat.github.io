@@ -11,6 +11,10 @@ import {
   paginatePosts,
   sortPosts,
   getPublishedPosts,
+  getTrackNumbers,
+  formatDotDate,
+  formatMonth,
+  formatTrackLength,
 } from '../../src/lib/posts';
 
 vi.mock('astro:content', () => ({ getCollection: vi.fn() }));
@@ -110,5 +114,20 @@ describe('post helpers', () => {
 
   it('returns at least one reading minute', () => {
     expect(getReadingMinutes('短文本')).toBe(1);
+  });
+
+  it('numbers tracks from the oldest post', () => {
+    const numbers = getTrackNumbers([
+      post('newest', '2026-08-03T00:00:00.000Z'),
+      post('oldest', '2026-08-01T00:00:00.000Z'),
+      post('middle', '2026-08-02T00:00:00.000Z'),
+    ]);
+    expect([...numbers.entries()]).toEqual([['oldest', 1], ['middle', 2], ['newest', 3]]);
+  });
+
+  it('formats lengths and dates in the site style', () => {
+    expect(formatTrackLength(12)).toBe('12:00');
+    expect(formatMonth(new Date('2026-10-01T00:00:00.000Z'))).toBe('2026 年 10 月');
+    expect(formatDotDate(new Date('2026-10-11T18:00:00.000Z'))).toBe('2026.10.12');
   });
 });

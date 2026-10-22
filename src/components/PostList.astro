@@ -1,24 +1,32 @@
 ---
-import { getPostHref, type BlogPost } from '../lib/posts';
-import PostMeta from './PostMeta.astro';
+import { formatDotDate, formatTrackLength, getPostHref, getPublishedPosts, getReadingMinutes, getTrackNumbers, type BlogPost } from '../lib/posts';
 
 interface Props {
   posts: BlogPost[];
+  side?: 'A' | 'B';
+  numbers?: Map<string, number>;
 }
 
-const { posts } = Astro.props;
+const { posts, side = 'A' } = Astro.props;
+const numbers = Astro.props.numbers ?? getTrackNumbers(await getPublishedPosts());
 ---
 
 {posts.length === 0 ? (
   <p class="empty-state">暂无文章</p>
 ) : (
-  <ol class="post-list">
-    {posts.map((post) => (
-      <li class="post-row" data-post-row>
-        <a href={getPostHref(post.id)}>{post.data.title}</a>
-        <p>{post.data.description}</p>
-        <PostMeta post={post} includeTags={false} />
-      </li>
-    ))}
+  <ol class="track-list">
+    {posts.map((post) => {
+      const number = numbers.get(post.id);
+      const minutes = getReadingMinutes(post.body ?? '');
+      return (
+        <li class="track" data-post-row>
+          <a href={getPostHref(post.id)}>
+            <span class="track-number" aria-hidden="true">{number ? `${side}${number}` : '—'}</span>
+            <span class="track-title">{post.data.title}<small>{[post.data.category, post.data.project, formatDotDate(post.data.publishedAt)].filter(Boolean).join(' · ')}</small></span>
+            <span class="track-length"><span aria-hidden="true">{formatTrackLength(minutes)}</span><span class="sr-only">阅读约 {minutes} 分钟</span></span>
+          </a>
+        </li>
+      );
+    })}
   </ol>
 )}

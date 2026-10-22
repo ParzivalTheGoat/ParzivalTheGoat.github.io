@@ -3,8 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="页面不存在" noindex={true} canonicalPath="/404.html">
-  <div data-pagefind-ignore>
-    <h1>页面不存在</h1>
-    <p><a class="ui-button" href="/">返回首页</a></p>
+  <div class="side-c" data-pagefind-ignore>
+    <span class="sheet-mark" aria-hidden="true">Side C</span>
+    <h1>这张唱片没有这一面</h1>
+    <p><a href="/">回首页</a></p>
   </div>
 </BaseLayout>

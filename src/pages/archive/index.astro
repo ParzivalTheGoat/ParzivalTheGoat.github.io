@@ -1,19 +1,26 @@
 ---
 import PostList from '../../components/PostList.astro';
+import StudyHead from '../../components/StudyHead.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedPosts, groupPostsByMonth } from '../../lib/posts';
+import { getPublishedPosts, getTrackNumbers, groupPostsByMonth } from '../../lib/posts';
 
-const groups = groupPostsByMonth(await getPublishedPosts());
+const posts = await getPublishedPosts();
+const numbers = getTrackNumbers(posts);
+const groups = groupPostsByMonth(posts);
+const monthLabel = (key: string) => {
+  const [year, month] = key.split('-');
+  return `${year} 年 ${Number(month)} 月`;
+};
 ---
 
 <BaseLayout title="归档">
-  <h1>归档</h1>
+  <StudyHead title="归档" count={posts.length} />
   {groups.length === 0 ? (
     <PostList posts={[]} />
   ) : groups.map((group) => (
     <section class="archive-group" aria-labelledby={`archive-${group.key}`}>
-      <h2 id={`archive-${group.key}`}>{group.key}</h2>
-      <PostList posts={group.items} />
+      <h2 id={`archive-${group.key}`}>{monthLabel(group.key)}</h2>
+      <PostList posts={group.items} numbers={numbers} />
     </section>
   ))}
 </BaseLayout>

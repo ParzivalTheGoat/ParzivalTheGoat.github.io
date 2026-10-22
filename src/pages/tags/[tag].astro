@@ -1,7 +1,8 @@
 ---
 import PostList from '../../components/PostList.astro';
+import StudyHead from '../../components/StudyHead.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedPosts, getTaxonomyCounts } from '../../lib/posts';
+import { getPublishedPosts, getTaxonomyCounts, getTrackNumbers } from '../../lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -9,10 +10,11 @@ export async function getStaticPaths() {
 }
 
 const tag = Astro.params.tag ?? '';
-const posts = (await getPublishedPosts()).filter((post) => post.data.tags.includes(tag));
+const all = await getPublishedPosts();
+const posts = all.filter((post) => post.data.tags.includes(tag));
 ---
 
 <BaseLayout title={tag}>
-  <h1>{tag}</h1>
-  <PostList posts={posts} />
+  <StudyHead title={`#${tag}`} count={posts.length} />
+  <PostList posts={posts} numbers={getTrackNumbers(all)} />
 </BaseLayout>

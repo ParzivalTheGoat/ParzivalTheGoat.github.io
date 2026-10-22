@@ -1,20 +1,24 @@
 ---
+import Gramophone from '../components/Gramophone.astro';
 import PostList from '../components/PostList.astro';
-import Icon from '../components/Icon.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getPublishedPosts } from '../lib/posts';
+import { getPublishedPosts, getTrackNumbers } from '../lib/posts';
 
 const posts = await getPublishedPosts();
+const numbers = getTrackNumbers(posts);
+const latest = posts.slice(0, 6);
 ---
 
-<BaseLayout>
-  <h1>Parzival's Lab</h1>
-  <div class="hero-actions">
-    <a class="ui-button ui-button-primary" href="/posts/">浏览文章<Icon name="arrow" /></a>
-    <a class="ui-button" href="/categories/"><Icon name="categories" />探索分类</a>
+<BaseLayout masthead={true}>
+  <div class="sides">
+    <section class="side side-a" aria-labelledby="side-a">
+      <div class="side-head"><h2 id="side-a"><span class="side-letter" aria-hidden="true">A</span><span class="sr-only">A 面 · </span>学习</h2><small>{posts.length} 篇</small></div>
+      <PostList posts={latest} numbers={numbers} />
+      {posts.length > latest.length && <a class="list-more" href="/posts/">全部 {posts.length} 篇 →</a>}
+    </section>
+    <section class="side side-b" aria-labelledby="side-b">
+      <div class="side-head"><h2 id="side-b"><span class="side-letter" aria-hidden="true">B</span><span class="sr-only">B 面 · </span>生活</h2><small>心情歌单</small></div>
+      <Gramophone />
+    </section>
   </div>
-  <section class="home-latest" aria-labelledby="latest">
-    <div class="section-heading"><h2 id="latest">最新文章</h2><a class="ui-button" href="/archive/">文章归档<Icon name="arrow" /></a></div>
-    <PostList posts={posts.slice(0, 10)} />
-  </section>
 </BaseLayout>

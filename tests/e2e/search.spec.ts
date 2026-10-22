@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const unavailableStatus = '搜索暂时不可用';
+// Site name, four navigation links and the theme toggle come before the search input.
+const tabsToSearchInput = 7;
 
 async function stubPagefind(page: Page, source: string) {
   await page.route('**/pagefind/pagefind.js', (route) => route.fulfill({
@@ -141,7 +143,7 @@ test('search handles a rejected Pagefind result payload without a page error', a
 
 test('keyboard focus keeps the search input visibly outlined', async ({ page }) => {
   await page.goto('/search/');
-  for (let index = 0; index < 9; index += 1) await page.keyboard.press('Tab');
+  for (let index = 0; index < tabsToSearchInput; index += 1) await page.keyboard.press('Tab');
 
   const input = page.getByRole('searchbox', { name: '搜索文章' });
   await expect(input).toBeFocused();
@@ -168,7 +170,7 @@ test('Enter keeps search input focus through delayed Pagefind success and failur
     };
   `);
   await page.goto('/search/');
-  for (let index = 0; index < 9; index += 1) await page.keyboard.press('Tab');
+  for (let index = 0; index < tabsToSearchInput; index += 1) await page.keyboard.press('Tab');
 
   const input = page.getByRole('searchbox', { name: '搜索文章' });
   await expect(input).toBeFocused();
@@ -201,7 +203,7 @@ test('search settlement preserves an intentional keyboard focus move', async ({ 
     window.resolvePagefindSearch = () => resolveSearch({ results: [] });
   `);
   await page.goto('/search/');
-  for (let index = 0; index < 9; index += 1) await page.keyboard.press('Tab');
+  for (let index = 0; index < tabsToSearchInput; index += 1) await page.keyboard.press('Tab');
 
   const input = page.getByRole('searchbox', { name: '搜索文章' });
   const button = page.getByRole('button', { name: '搜索' });
